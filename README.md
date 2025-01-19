@@ -1,5 +1,5 @@
 # Proofpoint Secure Email Relay Mail API Package
-[![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)
+[![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)  
 Library implements all the functions of the SER Email Relay User Management API via Python.
 
 ### Requirements:
