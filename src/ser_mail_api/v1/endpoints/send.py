@@ -1,5 +1,4 @@
-from ser_mail_api.v1.data.message import Message
-from ser_mail_api.v1.data.result import Result
+from ser_mail_api.v1.data import Message, Result
 from ser_mail_api.v1.resources import Resource
 
 

@@ -34,7 +34,7 @@ class Resource:
 
         if parent is not None and not isinstance(parent, Resource):
             raise TypeError(f"Expected 'parent' to be a Resource or None, got {type(parent).__name__}")
-        
+
         self.__parent = parent
         self.__name = uri
 

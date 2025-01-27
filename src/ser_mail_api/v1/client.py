@@ -6,9 +6,9 @@ License: MIT
 from requests.adapters import HTTPAdapter
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 
-from ser_mail_api.v1.endpoints.send import Send
-from ser_mail_api.v1.resources.error_handler import ErrorHandler
-from ser_mail_api.v1.resources.resource import Resource
+from .endpoints.send import Send
+from .resources import ErrorHandler
+from .resources import Resource
 
 
 class TimeoutHTTPAdapter(HTTPAdapter):
