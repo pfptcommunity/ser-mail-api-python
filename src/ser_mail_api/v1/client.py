@@ -35,6 +35,7 @@ class Client(Resource):
     def __init__(self, client_id: str, client_secret: str):
         super().__init__(None, "https://mail.ser.proofpoint.com/v1")
 
+        # Custom error handler, allow raise on error.
         self.__error_handler = ErrorHandler()
         self._session.hooks = {"response": self.__error_handler.handler}
 
