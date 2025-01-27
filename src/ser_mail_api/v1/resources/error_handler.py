@@ -3,12 +3,9 @@ Author: Ludvik Jerabek
 Package: ser-mail-api
 License: MIT
 """
-import logging
 from typing import Any
 
 from requests import Response
-
-logger = logging.getLogger(__name__)
 
 ERROR_MESSAGES = {
     400: "Bad Request",
@@ -61,7 +58,6 @@ class ErrorHandler:
         """
         if response.status_code in ERROR_MESSAGES:
             response.reason = ERROR_MESSAGES[response.status_code]
-            logger.error(f"HTTP {response.status_code}: {response.reason}")
 
         if self.__raise_for_status:
             response.raise_for_status()
