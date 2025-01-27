@@ -1,6 +1,6 @@
 """
 Author: Ludvik Jerabek
-Package: tap_api
+Package: ser-mail-api
 License: MIT
 """
 import logging
@@ -11,11 +11,17 @@ from requests import Response
 logger = logging.getLogger(__name__)
 
 ERROR_MESSAGES = {
-    400: "The request is missing a mandatory request parameter, a parameter contains data which is incorrectly formatted, or the API doesn't have enough information to determine the identity of the customer.",
-    401: "There is no authorization information included in the request, the authorization information is incorrect, or the user is not authorized.",
-    404: "The campaign ID or threat ID does not exist.",
-    429: "The user has made too many requests over the past 24 hours and has been throttled.",
-    500: "The service has encountered an unexpected situation and is unable to give a better response to the request.",
+    200: "Message Accepted for Delivery",
+    400: "Bad Request",
+    401: "Unauthorized",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    413: "Payload Too Large",
+    415: "Unsupported Media Type for Request",
+    422: "Unprocessable Entity",
+    429: "Too Many Requests",
+    500: "Internal Server Error",
+    503: "Service Unavailable",
 }
 
 

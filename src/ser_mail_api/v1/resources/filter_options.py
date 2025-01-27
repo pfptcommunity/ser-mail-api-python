@@ -1,6 +1,6 @@
 """
 Author: Ludvik Jerabek
-Package: tap_api
+Package: ser-mail-api
 License: MIT
 """
 from datetime import datetime

@@ -1,3 +1,8 @@
+"""
+Author: Ludvik Jerabek
+Package: ser-mail-api
+License: MIT
+"""
 from abc import ABC, abstractmethod
 
 

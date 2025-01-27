@@ -1,8 +1,6 @@
 """
-This code was tested against Python 3.9
-
 Author: Ludvik Jerabek
-Package: tap_api
+Package: ser-mail-api
 License: MIT
 """
 from .client import Client

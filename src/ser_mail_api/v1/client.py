@@ -1,6 +1,4 @@
 """
-This code was tested against Python 3.9
- 
 Author: Ludvik Jerabek
 Package: ser_mail_api
 License: MIT
@@ -37,8 +35,8 @@ class Client(Resource):
     def __init__(self, client_id: str, client_secret: str):
         super().__init__(None, "https://mail.ser.proofpoint.com/v1")
 
-        # self.__error_handler = ErrorHandler()
-        # self._session.hooks = {"response": self.__error_handler.handler}
+        self.__error_handler = ErrorHandler()
+        self._session.hooks = {"response": self.__error_handler.handler}
 
         # Deal with OAuth2
         oauth2_client = OAuth2Client("https://mail.ser.proofpoint.com/v1/token", auth=(client_id, client_secret))
