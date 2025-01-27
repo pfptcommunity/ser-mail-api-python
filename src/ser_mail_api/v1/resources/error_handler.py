@@ -11,7 +11,6 @@ from requests import Response
 logger = logging.getLogger(__name__)
 
 ERROR_MESSAGES = {
-    200: "Message Accepted for Delivery",
     400: "Bad Request",
     401: "Unauthorized",
     404: "Not Found",
