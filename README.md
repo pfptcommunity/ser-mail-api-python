@@ -1,4 +1,5 @@
 # Proofpoint Secure Email Relay Mail API Package
+
 [![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)  
 Library implements all the functions of the SER Email Relay User Management API via Python.
 
@@ -61,7 +62,7 @@ pipx install ser-mail-api
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>","<client_secret>")
+    client = Client("<client_id>", "<client_secret>")
 ```
 
 ### Sending an Email Message
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     byte_stream = text.encode("utf-8")
 
     # Add Byte Stream as Attachment, if Disposition is not passed, the default is Disposition.ATTACHMENT
-    message.add_attachment(StreamAttachment(byte_stream,"byte_stream.txt", "text/plain", Disposition.ATTACHMENT))
+    message.add_attachment(StreamAttachment(byte_stream, "byte_stream.txt", "text/plain", Disposition.ATTACHMENT))
 
     result = client.send(message)
 
@@ -123,82 +124,120 @@ The following JSON data is a dump of the message object based on the code above.
 
 ```json
 {
-    "attachments": [
-        {
-            "content": "VGhpcyBpcyBhIHRlc3Qh",
-            "disposition": "attachment",
-            "filename": "test.txt",
-            "id": "d10205cf-a0a3-4b9e-9a57-253fd8e1c7df",
-            "type": "text/plain"
-        },
-        {
-            "content": "77u/IlVzZXIiLCJTZW50Q291bnQiLCJSZWNlaXZlZENvdW50Ig0KIm5vcmVwbHlAcHJvb2Zwb2ludC5jb20sIGxqZXJhYmVrQHBmcHQuaW8iLCIwIiwiMCINCg==",
-            "disposition": "attachment",
-            "filename": "file.csv",
-            "id": "f66487f5-57c2-40e0-9402-5723a85c0df0",
-            "type": "application/vnd.ms-excel"
-        },
-        {
-            "content": "VGhpcyBpcyBhIHNhbXBsZSB0ZXh0IHN0cmVhbS4=",
-            "disposition": "attachment",
-            "filename": "byte_stream.txt",
-            "id": "bc67d5fa-345a-4436-9979-5efa68223520",
-            "type": "text/plain"
-        }
-    ],
-    "content": [
-        {
-            "body": "This is a test message",
-            "type": "text/plain"
-        },
-        {
-            "body": "<b>This is a test message</b>",
-            "type": "text/html"
-        }
-    ],
+  "attachments": [
+    {
+      "content": "VGhpcyBpcyBhIHRlc3Qh",
+      "disposition": "attachment",
+      "filename": "test.txt",
+      "id": "d10205cf-a0a3-4b9e-9a57-253fd8e1c7df",
+      "type": "text/plain"
+    },
+    {
+      "content": "77u/IlVzZXIiLCJTZW50Q291bnQiLCJSZWNlaXZlZENvdW50Ig0KIm5vcmVwbHlAcHJvb2Zwb2ludC5jb20sIGxqZXJhYmVrQHBmcHQuaW8iLCIwIiwiMCINCg==",
+      "disposition": "attachment",
+      "filename": "file.csv",
+      "id": "f66487f5-57c2-40e0-9402-5723a85c0df0",
+      "type": "application/vnd.ms-excel"
+    },
+    {
+      "content": "VGhpcyBpcyBhIHNhbXBsZSB0ZXh0IHN0cmVhbS4=",
+      "disposition": "attachment",
+      "filename": "byte_stream.txt",
+      "id": "bc67d5fa-345a-4436-9979-5efa68223520",
+      "type": "text/plain"
+    }
+  ],
+  "content": [
+    {
+      "body": "This is a test message",
+      "type": "text/plain"
+    },
+    {
+      "body": "<b>This is a test message</b>",
+      "type": "text/html"
+    }
+  ],
+  "from": {
+    "email": "sender@proofpoint.com",
+    "name": "Joe Sender"
+  },
+  "headers": {
     "from": {
-        "email": "sender@proofpoint.com",
-        "name": "Joe Sender"
+      "email": "sender@proofpoint.com",
+      "name": "Joe Sender"
+    }
+  },
+  "subject": "This is a test email",
+  "tos": [
+    {
+      "email": "recipient1@proofpoint.com",
+      "name": "Recipient 1"
     },
-    "headers": {
-        "from": {
-            "email": "sender@proofpoint.com",
-            "name": "Joe Sender"
-        }
+    {
+      "email": "recipient2@proofpoint.com",
+      "name": "Recipient 2"
+    }
+  ],
+  "cc": [
+    {
+      "email": "cc1@proofpoint.com",
+      "name": "Carbon Copy 1"
     },
-    "subject": "This is a test email",
-    "tos": [
-        {
-            "email": "recipient1@proofpoint.com",
-            "name": "Recipient 1"
-        },
-        {
-            "email": "recipient2@proofpoint.com",
-            "name": "Recipient 2"
-        }
-    ],
-    "cc": [
-        {
-            "email": "cc1@proofpoint.com",
-            "name": "Carbon Copy 1"
-        },
-        {
-            "email": "cc2@proofpoint.com",
-            "name": "Carbon Copy 2"
-        }
-    ],
-    "bcc": [
-        {
-            "email": "bcc1@proofpoint.com",
-            "name": "Blind Carbon Copy 1"
-        },
-        {
-            "email": "bcc2@proofpoint.com",
-            "name": "Blind Carbon Copy 2"
-        }
-    ],
-    "replyTos": []
+    {
+      "email": "cc2@proofpoint.com",
+      "name": "Carbon Copy 2"
+    }
+  ],
+  "bcc": [
+    {
+      "email": "bcc1@proofpoint.com",
+      "name": "Blind Carbon Copy 1"
+    },
+    {
+      "email": "bcc2@proofpoint.com",
+      "name": "Blind Carbon Copy 2"
+    }
+  ],
+  "replyTos": []
 }
+```
+
+### Proxy Support
+
+Socks5 Proxy Example:
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    credentials = "{}:{}@".format("proxyuser", "proxypass")
+    client._session.proxies = {'https': "{}://{}{}:{}".format('socks5', credentials, '<your_proxy>', '8128')}
+```
+
+HTTP Proxy Example (Squid):
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    credentials = "{}:{}@".format("proxyuser", "proxypass")
+    client._session.proxies = {'https': "{}://{}{}:{}".format('http', credentials, '<your_proxy>', '3128')}
+
+```
+
+### HTTP Timeout Settings
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    # Timeout in seconds, connect timeout
+    client.timeout = 600
+    # Timeout advanced, connect / read timeout
+    client.timeout = (3.05, 27)
 ```
 
 ### Limitations
