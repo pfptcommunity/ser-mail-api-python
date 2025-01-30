@@ -15,8 +15,8 @@ def _is_valid_base64(s: str) -> bool:
 
 
 class Disposition(Enum):
-    INLINE = "inline"
-    ATTACHMENT = "attachment"
+    Inline = "inline"
+    Attachment = "attachment"
 
 
 class Attachment:
@@ -83,7 +83,7 @@ class Attachment:
 
 
 class FileAttachment(Attachment):
-    def __init__(self, file_path: str, disposition: Disposition = Disposition.ATTACHMENT, mime_type: Optional[str] = None):
+    def __init__(self, file_path: str, disposition: Disposition = Disposition.Attachment, mime_type: Optional[str] = None):
         """
         Args:
             file_path (str): Path to the file.
@@ -119,7 +119,7 @@ class FileAttachment(Attachment):
 
 
 class BinaryAttachment(Attachment):
-    def __init__(self, stream: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.ATTACHMENT):
+    def __init__(self, stream: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.Attachment):
         """
         Args:
             stream (bytes): Byte stream of the content.

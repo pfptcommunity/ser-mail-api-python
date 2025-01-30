@@ -12,8 +12,8 @@ if __name__ == "__main__":
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@proofpoint.com", "Joe Sender"))
     # Add content body
-    message.add_content(Content("This is a test message", ContentType.TEXT))
-    message.add_content(Content("<b>This is a test message</b>", ContentType.HTML))
+    message.add_content(Content("This is a test message", ContentType.Text))
+    message.add_content(Content("<b>This is a test message</b>", ContentType.Html))
     # Add Recipients
     message.add_recipient(MailUser("recipient1@proofpoint.com", "Recipient 1"))
     message.add_recipient(MailUser("recipient2@proofpoint.com", "Recipient 2"))
@@ -25,10 +25,10 @@ if __name__ == "__main__":
     message.add_bcc(MailUser("bcc2@proofpoint.com", "Blind Carbon Copy 2"))
 
     # Add Base64 Encoded Attachment
-    message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.ATTACHMENT, "test.txt", "text/plain"))
+    message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.Attachment, "test.txt", "text/plain"))
 
     # Add File Attachment from Disk, if Disposition is not passed, the default is Disposition.ATTACHMENT
-    message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.ATTACHMENT))
+    message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
 
     # In the following example, we will create a byte stream from a string. This byte stream is converted
     # to base64 encoding within the StreamAttachment object
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     byte_stream = text.encode("utf-8")
 
     # Add Byte Stream as Attachment, if Disposition is not passed, the default is Disposition.ATTACHMENT
-    message.add_attachment(BinaryAttachment(byte_stream,"byte_stream.txt", "text/plain", Disposition.ATTACHMENT))
+    message.add_attachment(BinaryAttachment(byte_stream,"byte_stream.txt", "text/plain", Disposition.Attachment))
 
     result = client.send(message)
 

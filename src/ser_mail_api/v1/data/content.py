@@ -5,8 +5,8 @@ from typing import Dict
 
 
 class ContentType(Enum):
-    TEXT = "text/plain"
-    HTML = "text/html"
+    Text = "text/plain"
+    Html = "text/html"
 
 
 class Content:
