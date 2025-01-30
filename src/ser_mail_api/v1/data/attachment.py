@@ -118,7 +118,7 @@ class FileAttachment(Attachment):
             return base64.b64encode(file.read()).decode("utf-8")
 
 
-class StreamAttachment(Attachment):
+class BinaryAttachment(Attachment):
     def __init__(self, stream: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.ATTACHMENT):
         """
         Args:

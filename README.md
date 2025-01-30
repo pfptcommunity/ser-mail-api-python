@@ -108,7 +108,7 @@ if __name__ == "__main__":
     byte_stream = text.encode("utf-8")
 
     # Add Byte Stream as Attachment, if Disposition is not passed, the default is Disposition.ATTACHMENT
-    message.add_attachment(StreamAttachment(byte_stream, "byte_stream.txt", "text/plain", Disposition.ATTACHMENT))
+    message.add_attachment(BinaryAttachment(byte_stream, "bytes.txt", "text/plain", Disposition.ATTACHMENT))
 
     result = client.send(message)
 
