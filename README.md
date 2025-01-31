@@ -101,7 +101,7 @@ if __name__ == "__main__":
     # Add Base64 encoded attachment
     message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.Attachment, "test.txt", "text/plain"))
 
-    # Add File attachment from disk, if disposition is not passed, the default is Disposition.ATTACHMENT
+    # Add File attachment from disk, if disposition is not passed, the default is Disposition.Attachment
     message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
 
     # In the following example, we will create a byte stream from a string. This byte array is converted
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # Convert the string into bytes
     bytes = text.encode("utf-8")
 
-    # Add Byte array as attachment, if disposition is not passed, the default is Disposition.ATTACHMENT
+    # Add Byte array as attachment, if disposition is not passed, the default is Disposition.Attachment
     message.add_attachment(BinaryAttachment(bytes,"bytes.txt", "text/plain", Disposition.Attachment))
 
     result = client.send(message)
