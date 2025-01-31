@@ -81,23 +81,27 @@ if __name__ == "__main__":
 
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@proofpoint.com", "Joe Sender"))
+    
     # Add content body
     message.add_content(Content("This is a test message", ContentType.Text))
     message.add_content(Content("<b>This is a test message</b>", ContentType.Html))
-    # Add Recipients
-    message.add_recipient(MailUser("recipient1@proofpoint.com", "Recipient 1"))
-    message.add_recipient(MailUser("recipient2@proofpoint.com", "Recipient 2"))
-    # Add CC
-    message.add_cc(MailUser("cc1@proofpoint.com", "Carbon Copy 1"))
-    message.add_cc(MailUser("cc2@proofpoint.com", "Carbon Copy 2"))
-    # Add BCC
-    message.add_bcc(MailUser("bcc1@proofpoint.com", "Blind Carbon Copy 1"))
-    message.add_bcc(MailUser("bcc2@proofpoint.com", "Blind Carbon Copy 2"))
+    
+    # Add To
+    message.add_to(MailUser("to_recipient1@proofpoint.com", "Recipient 1"))
+    message.add_to(MailUser("to_recipien2@proofpoint.com", "Recipient 2"))
+    
+    # Add Cc
+    message.add_cc(MailUser("cc_recipien1@proofpoint.com", "Carbon Copy 1"))
+    message.add_cc(MailUser("cc_recipien2@proofpoint.com", "Carbon Copy 2"))
+    
+    # Add Bcc
+    message.add_bcc(MailUser("bcc_recipien1@proofpoint.com", "Blind Carbon Copy 1"))
+    message.add_bcc(MailUser("bcc_recipien2@proofpoint.com", "Blind Carbon Copy 2"))
 
-    # Add Base64 Encoded Attachment
+    # Add Base64 encoded attachment
     message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.Attachment, "test.txt", "text/plain"))
 
-    # Add File Attachment from Disk, if Disposition is not passed, the default is Disposition.ATTACHMENT
+    # Add File attachment from disk, if disposition is not passed, the default is Disposition.ATTACHMENT
     message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
 
     # In the following example, we will create a byte stream from a string. This byte stream is converted
@@ -107,8 +111,8 @@ if __name__ == "__main__":
     # Convert the string into bytes
     bytes = text.encode("utf-8")
 
-    # Add Byte Stream as Attachment, if Disposition is not passed, the default is Disposition.ATTACHMENT
-    message.add_attachment(BinaryAttachment(bytes, "bytes.txt", "text/plain", Disposition.Attachment))
+    # Add Byte array as attachment, if disposition is not passed, the default is Disposition.ATTACHMENT
+    message.add_attachment(BinaryAttachment(bytes,"bytes.txt", "text/plain", Disposition.Attachment))
 
     result = client.send(message)
 
