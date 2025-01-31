@@ -1,7 +1,7 @@
 # Proofpoint Secure Email Relay Mail API Package
 
 [![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)  
-Library implements all the functions of the SER Email Relay User Management API via Python.
+Library implements all the functions of the SER Email Relay API via Python.
 
 ### Requirements:
 
@@ -104,8 +104,8 @@ if __name__ == "__main__":
     # Add File attachment from disk, if disposition is not passed, the default is Disposition.ATTACHMENT
     message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
 
-    # In the following example, we will create a byte stream from a string. This byte stream is converted
-    # to base64 encoding within the StreamAttachment object
+    # In the following example, we will create a byte stream from a string. This byte array is converted
+    # to base64 encoding within the BinaryAttachment object
     text = "This is a sample text stream."
 
     # Convert the string into bytes
