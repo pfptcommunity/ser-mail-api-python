@@ -44,10 +44,10 @@ class Message:
             raise TypeError(f"Expected header_sender to be a MailUser, got {type(sender).__name__}")
         self.__header_sender = sender
 
-    def add_recipient(self, recipient: MailUser):
-        if not isinstance(recipient, MailUser):
-            raise TypeError(f"Expected recipient to be a MailUser, got {type(recipient).__name__}")
-        self.__recipients.append(recipient)
+    def add_to(self, to_user: MailUser):
+        if not isinstance(to_user, MailUser):
+            raise TypeError(f"Expected to_user to be a MailUser, got {type(to_user).__name__}")
+        self.__recipients.append(to_user)
 
     def add_cc(self, cc_user: MailUser):
         if not isinstance(cc_user, MailUser):
