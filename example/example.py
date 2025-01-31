@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # Add File attachment from disk, if disposition is not passed, the default is Disposition.ATTACHMENT
     message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
 
-    # In the following example, we will create a byte stream from a string. This byte stream is converted
-    # to base64 encoding within the StreamAttachment object
+    # In the following example, we will create a byte stream from a string. This byte array is converted
+    # to base64 encoding within the BinaryAttachment object
     text = "This is a sample text stream."
 
     # Convert the string into bytes
