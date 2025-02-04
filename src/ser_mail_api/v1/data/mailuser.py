@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Dict, Optional
 
 
@@ -32,6 +33,5 @@ class MailUser:
             "name": self.__name,
         }
 
-    def __repr__(self) -> str:
-        """Developer-friendly string representation."""
-        return f"MailUser(email={self.__email!r}, name={self.__name!r})"
+    def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)

@@ -96,5 +96,4 @@ class Message:
         }
 
     def __str__(self) -> str:
-        """Convert the message to a JSON string."""
-        return json.dumps(self.to_dict(), indent=4)
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)

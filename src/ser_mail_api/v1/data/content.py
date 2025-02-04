@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from enum import Enum
 from typing import Dict
 
@@ -38,6 +39,5 @@ class Content:
             "type": self.__content_type.value,
         }
 
-    def __repr__(self) -> str:
-        """Developer-friendly string representation."""
-        return f"Content(body={self.__body!r}, type={self.__content_type!r})"
+    def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)

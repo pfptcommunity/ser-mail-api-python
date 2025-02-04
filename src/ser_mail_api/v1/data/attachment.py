@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import mimetypes
 import os
 import uuid
@@ -121,11 +122,8 @@ class Attachment:
 
         return data
 
-    def __repr__(self) -> str:
-        return (
-            f"Attachment(id={self.__cid!r}, filename={self.__filename!r}, "
-            f"disposition={self.__disposition.value!r}, mime_type={self.__mime_type!r})"
-        )
+    def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)
 
     @staticmethod
     def from_base64(base64string: str, filename: str, mime_type: Optional[str] = None,
@@ -141,27 +139,27 @@ class Attachment:
         return Attachment(base64string, filename, mime_type, disposition, cid)
 
     @staticmethod
-    def from_file(file_path: str, disposition: Disposition = Disposition.Attachment, mime_type: Optional[str] = None,
-                  cid: Optional[str] = None) -> Attachment:
+    def from_file(file_path: str, disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None,
+                  filename: Optional[str] = None, mime_type: Optional[str] = None) -> Attachment:
         """
         Args:
             file_path (str): Path to the file.
             disposition (Disposition): The disposition of the attachment (inline or attachment).
-            mime_type (Optional[str]): The MIME type of the file. If None, it will be deduced from the file path.
             cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
+            filename (Optional[str]): Overrides the filename. Defaults to deriving from file_path.
+            mime_type (Optional[str]): Overrides the MIME type. Defaults to None, and will be deduced by the Attachment object by filename.
         """
         if not isinstance(file_path, str):
             raise TypeError(f"Expected 'file_path' to be a string, got {type(file_path).__name__}")
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"The file at path '{file_path}' does not exist.")
 
-        # Use provided mime_type or deduce it
-        if mime_type is None:
-            mime_type = _deduce_mime_type(file_path)
+        # Allow filename override
+        if filename is None:
+            filename = os.path.basename(file_path)
 
         # Encode file content
         content = _encode_file_content(file_path)
-        filename = os.path.basename(file_path)
 
         return Attachment(content, filename, mime_type, disposition, cid)
 
