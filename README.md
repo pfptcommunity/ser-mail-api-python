@@ -3,12 +3,12 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)  
 Library implements all the functions of the SER Email Relay API via Python.
 
-### Requirements:
-
+## Requirements
 * Python 3.9+
 * requests
 * requests-oauth2client
 * pysocks
+* Active Proofpoint SER API credentials
 
 ### Installing the Package
 
@@ -56,196 +56,131 @@ You should use install pipx or you can configure your own virtual environment an
 pipx install ser-mail-api
 ```
 
-### Creating an API client object
+## Features
+
+- **Send Emails**: Easily compose and send emails with minimal code.
+- **Support for Attachments**
+    - Attach files from disk
+    - Encode attachments as Base64
+    - Send byte[] attachments
+- **Support for Inline HTML Content**
+    - Using the following syntax `<img src=\"cid:logo\">`
+    - Content-ID can be set manually or auto generated
+- **HTML & Plain Text Content**: Supports both plain text and HTML email bodies.
+- **Recipient Management**: Add `To`, `CC`, and `BCC` recipients with ease.
+- **Reply Management**: Add 'Reply-To' addresses to redirect replies.
+
+## Quick Start
 
 ```python
+import json
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
     client = Client("<client_id>", "<client_secret>")
-```
-
-### Sending an Email Message
-
-```python
-import json
-
-from ser_mail_api.v1 import *
-
-if __name__ == "__main__":
-    # Load API key
-    with open("../ser.api_key", "r") as api_key_file:
-        api_key_data = json.load(api_key_file)
-
-    client = Client(api_key_data.get("client_id"), api_key_data.get("client_secret"))
 
     # Create a new Message object
-    message = Message("This is a test email", MailUser("sender@proofpoint.com", "Joe Sender"))
-    
-    # Add content body
+    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
+
+    # Add text content body
     message.add_content(Content("This is a test message", ContentType.Text))
-    message.add_content(Content("<b>This is a test message</b>", ContentType.Html))
-    
-    # Add To
-    message.add_to(MailUser("to_recipient1@proofpoint.com", "Recipient 1"))
-    message.add_to(MailUser("to_recipien2@proofpoint.com", "Recipient 2"))
-    
-    # Add Cc
-    message.add_cc(MailUser("cc_recipien1@proofpoint.com", "Carbon Copy 1"))
-    message.add_cc(MailUser("cc_recipien2@proofpoint.com", "Carbon Copy 2"))
-    
-    # Add Bcc
-    message.add_bcc(MailUser("bcc_recipien1@proofpoint.com", "Blind Carbon Copy 1"))
-    message.add_bcc(MailUser("bcc_recipien2@proofpoint.com", "Blind Carbon Copy 2"))
 
-    # Add Base64 encoded attachment
-    message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.Attachment, "test.txt", "text/plain"))
+    # Add html content body, with embedded image.
+    message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
+    # Create an inline attachment from disk and set the cid.
+    message.add_attachment(Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline, cid="logo"))
 
-    # Add File attachment from disk, if disposition is not passed, the default is Disposition.Attachment
-    message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
+    # Add recipients
+    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
+    message.add_to(MailUser("recipient2@example.com", "Recipient 2"))
 
-    # In the following example, we will create a byte stream from a string. This byte array is converted
-    # to base64 encoding within the BinaryAttachment object
-    text = "This is a sample text stream."
+    # Add CC and BCC
+    message.add_cc(MailUser("cc1@example.com", "CC Recipient 1"))
+    message.add_bcc(MailUser("bcc1@example.com", "BCC Recipient 1"))
 
-    # Convert the string into bytes
-    bytes = text.encode("utf-8")
+    # Add attachments
+    message.add_attachment(Attachment.from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt"))
+    message.add_attachment(Attachment.from_file("C:/temp/file.csv"))
+    message.add_attachment(Attachment.from_bytes(b"Sample bytes", "bytes.txt", "text/plain"))
 
-    # Add Byte array as attachment, if disposition is not passed, the default is Disposition.Attachment
-    message.add_attachment(BinaryAttachment(bytes,"bytes.txt", "text/plain", Disposition.Attachment))
+    # Set or more Reply-To addresses
+    message.add_reply_to(MailUser("noreply@proofpoint.com", "No Reply"))
 
+    # Send the email
     result = client.send(message)
 
-    print("HTTP Status", result.get_status())
-    print("HTTP Reason", result.get_reason())
-
-    print("Reason:", result.reason)
+    print("HTTP Status:", result.get_status())
+    print("HTTP Reason:", result.get_reason())
     print("Message ID:", result.message_id)
     print("Request ID:", result.request_id)
 ```
 
-The following JSON data is a dump of the message object based on the code above.
+---
+
+## Attachment mime type deduction behavior
+
+When creating attachments, the library automatically attempts to determine the MIME type. This detection is based on:
+
+- The `filename` argument when using `Attachment.from_bytes` or `Attachment.from_base64`.
+- The `filepath` when using `Attachment.from_file`.
+
+If the MIME type cannot be determined, an exception will be raised.
+
+By default, attachments use `Disposition.Attachment`. If you need to reference an attachment using a **Content-ID** (
+e.g., `<img src="cid:logo">`), you must explicitly set `Disposition.Inline`.
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == "__main__":
+    # Create an attachment from disk, the mime type will be "application/vnd.ms-excel", and disposition will be "Disposition.Attachment"
+    Attachment.from_file("C:/temp/file.csv")
+    # This will throw an error, as the mime type is unknown.  
+    Attachment.from_file("C:/temp/file.unknown")
+    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be unknown.txt, and mime type "text/plain"
+    Attachment.from_file("C:/temp/file.unknown", filename="unknown.txt")
+    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be file.unknown, and mime type "text/plain"
+    Attachment.from_file("C:/temp/file.unknown", mime_type="text/plain")
+```
+
+---
+
+## Known Issues
+
+There is a known issue where **empty file content** results in a **400 Bad Request** error.
 
 ```json
 {
-  "attachments": [
-    {
-      "content": "VGhpcyBpcyBhIHRlc3Qh",
-      "disposition": "attachment",
-      "filename": "test.txt",
-      "id": "d10205cf-a0a3-4b9e-9a57-253fd8e1c7df",
-      "type": "text/plain"
-    },
-    {
-      "content": "77u/IlVzZXIiLCJTZW50Q291bnQiLCJSZWNlaXZlZENvdW50Ig0KIm5vcmVwbHlAcHJvb2Zwb2ludC5jb20sIGxqZXJhYmVrQHBmcHQuaW8iLCIwIiwiMCINCg==",
-      "disposition": "attachment",
-      "filename": "file.csv",
-      "id": "f66487f5-57c2-40e0-9402-5723a85c0df0",
-      "type": "application/vnd.ms-excel"
-    },
-    {
-      "content": "VGhpcyBpcyBhIHNhbXBsZSB0ZXh0IHN0cmVhbS4=",
-      "disposition": "attachment",
-      "filename": "byte_stream.txt",
-      "id": "bc67d5fa-345a-4436-9979-5efa68223520",
-      "type": "text/plain"
-    }
-  ],
-  "content": [
-    {
-      "body": "This is a test message",
-      "type": "text/plain"
-    },
-    {
-      "body": "<b>This is a test message</b>",
-      "type": "text/html"
-    }
-  ],
-  "from": {
-    "email": "sender@proofpoint.com",
-    "name": "Joe Sender"
-  },
-  "headers": {
-    "from": {
-      "email": "sender@proofpoint.com",
-      "name": "Joe Sender"
-    }
-  },
-  "subject": "This is a test email",
-  "tos": [
-    {
-      "email": "recipient1@proofpoint.com",
-      "name": "Recipient 1"
-    },
-    {
-      "email": "recipient2@proofpoint.com",
-      "name": "Recipient 2"
-    }
-  ],
-  "cc": [
-    {
-      "email": "cc1@proofpoint.com",
-      "name": "Carbon Copy 1"
-    },
-    {
-      "email": "cc2@proofpoint.com",
-      "name": "Carbon Copy 2"
-    }
-  ],
-  "bcc": [
-    {
-      "email": "bcc1@proofpoint.com",
-      "name": "Blind Carbon Copy 1"
-    },
-    {
-      "email": "bcc2@proofpoint.com",
-      "name": "Blind Carbon Copy 2"
-    }
-  ],
-  "replyTos": []
+  "content": "",
+  "disposition": "attachment",
+  "filename": "empty.txt",
+  "id": "1ed38149-70b2-4476-84a1-83e73913d43c",
+  "type": "text/plain"
 }
 ```
 
-### Proxy Support
-
-Socks5 Proxy Example:
-
-```python
-from ser_mail_api.v1 import *
-
-if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
-    credentials = "{}:{}@".format("proxyuser", "proxypass")
-    client._session.proxies = {'https': "{}://{}{}:{}".format('socks5', credentials, '<your_proxy>', '8128')}
-```
-
-HTTP Proxy Example (Squid):
-
-```python
-from ser_mail_api.v1 import *
-
-if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
-    credentials = "{}:{}@".format("proxyuser", "proxypass")
-    client._session.proxies = {'https': "{}://{}{}:{}".format('http', credentials, '<your_proxy>', '3128')}
+🔹 **API Response:**
 
 ```
-
-### HTTP Timeout Settings
-
-```python
-from ser_mail_api.v1 import *
-
-if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
-    # Timeout in seconds, connect timeout
-    client.timeout = 600
-    # Timeout advanced, connect / read timeout
-    client.timeout = (3.05, 27)
+Status Code: 400 BadRequest
+Message ID:
+Reason: attachments[0].content is required
+Request ID: fe9a1acf60a20c9d90bed843f6530156
+Raw JSON: {"request_id":"fe9a1acf60a20c9d90bed843f6530156","reason":"attachments[0].content is required"}
 ```
 
-### Limitations
+This issue has been reported to **Proofpoint Product Management**.
 
-There are no known limitations.
+---
 
-For more information please see: https://api-docs.ser.proofpoint.com/docs/email-submission
+## Limitations
+
+- Currently, **empty attachments are not supported** by the API.
+- No other known limitations.
+
+---
+
+## Additional Resources
+
+For more information, refer to the official **Proofpoint Secure Email Relay API documentation**:  
+[**API Documentation**](https://api-docs.ser.proofpoint.com/docs/email-submission)
