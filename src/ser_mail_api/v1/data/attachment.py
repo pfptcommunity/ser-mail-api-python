@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import mimetypes
 import os
@@ -6,8 +8,19 @@ from enum import Enum
 from typing import Dict, Optional
 
 
+def _deduce_mime_type(file_path: str) -> str:
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        raise ValueError(f"Unable to deduce MIME type for file: {file_path}")
+    return mime_type
+
+
+def _encode_file_content(file_path: str) -> str:
+    with open(file_path, "rb") as file:
+        return base64.b64encode(file.read()).decode("utf-8")
+
+
 def _is_valid_base64(s: str) -> bool:
-    """Check if a string is valid Base64."""
     try:
         return base64.b64encode(base64.b64decode(s)).decode('utf-8') == s
     except Exception:
@@ -20,7 +33,17 @@ class Disposition(Enum):
 
 
 class Attachment:
-    def __init__(self, content: str, disposition: Disposition, filename: str, mime_type: str):
+    def __init__(self, content: str, filename: str, mime_type: Optional[str] = None,
+                 disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None):
+        """
+        Args:
+            content (str): base64 encoded content.
+            filename (str): Filename of the attachment.
+            mime_type (str): MIME type of the content. If None, it will try to deduce it from the filename.
+            disposition (Disposition): The disposition of the attachment (inline or attachment).
+            cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
+        """
+
         # Validate input types
         if not isinstance(content, str):
             raise TypeError(f"Expected 'content' to be a string, got {type(content).__name__}")
@@ -28,8 +51,13 @@ class Attachment:
             raise TypeError(f"Expected 'disposition' to be a Disposition, got {type(disposition).__name__}")
         if not isinstance(filename, str):
             raise TypeError(f"Expected 'filename' to be a string, got {type(filename).__name__}")
-        if not isinstance(mime_type, str):
+
+        if mime_type is not None and not isinstance(mime_type, str):
             raise TypeError(f"Expected 'mime_type' to be a string, got {type(mime_type).__name__}")
+
+        # User provided mime_type or try to deduce it from filename
+        if mime_type is None:
+            mime_type = _deduce_mime_type(filename)
 
         # Validate specific constraints
         if not _is_valid_base64(content):
@@ -39,8 +67,18 @@ class Attachment:
         if not mime_type.strip():
             raise ValueError("Mime type must be a non-empty string")
 
-        # Set attributes
-        self.__id = str(uuid.uuid4())
+        # Covers None, empty string, or whitespace-only strings
+        if not cid or cid.isspace():
+            self.__cid = str(uuid.uuid4())  # Generate a UUID
+        elif isinstance(cid, str):
+            self.__cid = cid  # Use provided string
+        else:
+            raise TypeError(f"Expected 'cid' to be a string or None, got {type(cid).__name__}")
+
+        # CID only applies to inline attachments
+        if disposition == Disposition.Attachment:
+            self.__cid = None
+
         self.__content = content
         self.__disposition = disposition
         self.__filename = filename
@@ -48,7 +86,11 @@ class Attachment:
 
     @property
     def id(self) -> str:
-        return self.__id
+        return self.__cid
+
+    @property
+    def cid(self) -> str:
+        return self.__cid
 
     @property
     def content(self) -> str:
@@ -67,28 +109,46 @@ class Attachment:
         return self.__mime_type
 
     def to_dict(self) -> Dict:
-        return {
-            "content": self.content,
-            "disposition": self.disposition.value,
-            "filename": self.filename,
-            "id": self.id,
-            "type": self.mime_type,
+        data = {
+            "content": self.__content,
+            "disposition": self.__disposition.value,
+            "filename": self.__filename,
+            "type": self.__mime_type,
         }
+
+        if self.disposition == Disposition.Inline:
+            data["id"] = self.__cid
+
+        return data
 
     def __repr__(self) -> str:
         return (
-            f"Attachment(id={self.__id!r}, filename={self.__filename!r}, "
+            f"Attachment(id={self.__cid!r}, filename={self.__filename!r}, "
             f"disposition={self.__disposition.value!r}, mime_type={self.__mime_type!r})"
         )
 
+    @staticmethod
+    def from_base64(base64string: str, filename: str, mime_type: Optional[str] = None,
+                    disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None) -> Attachment:
+        """
+        Args:
+            base64string (str): base64 encoded content.
+            filename (str): Filename of the attachment.
+            mime_type (str): MIME type of the content. If None, it will try to deduce it from the filename.
+            disposition (Disposition): The disposition of the attachment (inline or attachment).
+            cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
+        """
+        return Attachment(base64string, filename, mime_type, disposition, cid)
 
-class FileAttachment(Attachment):
-    def __init__(self, file_path: str, disposition: Disposition = Disposition.Attachment, mime_type: Optional[str] = None):
+    @staticmethod
+    def from_file(file_path: str, disposition: Disposition = Disposition.Attachment, mime_type: Optional[str] = None,
+                  cid: Optional[str] = None) -> Attachment:
         """
         Args:
             file_path (str): Path to the file.
             disposition (Disposition): The disposition of the attachment (inline or attachment).
             mime_type (Optional[str]): The MIME type of the file. If None, it will be deduced from the file path.
+            cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
         """
         if not isinstance(file_path, str):
             raise TypeError(f"Expected 'file_path' to be a string, got {type(file_path).__name__}")
@@ -97,44 +157,29 @@ class FileAttachment(Attachment):
 
         # Use provided mime_type or deduce it
         if mime_type is None:
-            mime_type = self._deduce_mime_type(file_path)
+            mime_type = _deduce_mime_type(file_path)
 
         # Encode file content
-        content = self._encode_file_content(file_path)
+        content = _encode_file_content(file_path)
         filename = os.path.basename(file_path)
 
-        super().__init__(content, disposition, filename, mime_type)
+        return Attachment(content, filename, mime_type, disposition, cid)
 
     @staticmethod
-    def _deduce_mime_type(file_path: str) -> str:
-        mime_type, _ = mimetypes.guess_type(file_path)
-        if not mime_type:
-            raise ValueError(f"Unable to deduce MIME type for file: {file_path}")
-        return mime_type
-
-    @staticmethod
-    def _encode_file_content(file_path: str) -> str:
-        with open(file_path, "rb") as file:
-            return base64.b64encode(file.read()).decode("utf-8")
-
-
-class BinaryAttachment(Attachment):
-    def __init__(self, stream: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.Attachment):
+    def from_bytes(data: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.Attachment,
+                   cid: Optional[str] = None) -> Attachment:
         """
         Args:
-            stream (bytes): Byte stream of the content.
+            data (bytes): Byte array of the content.
             filename (str): Filename of the attachment.
-            mime_type (str): MIME type of the content.
+            mime_type (str): MIME type of the content. If None, it will try to deduce it from the filename.
             disposition (Disposition): The disposition of the attachment (inline or attachment).
+            cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
         """
-        if not isinstance(stream, bytes):
-            raise TypeError(f"Expected 'stream' to be bytes, got {type(stream).__name__}")
-        if not isinstance(filename, str):
-            raise TypeError(f"Expected 'filename' to be a string, got {type(filename).__name__}")
-        if not isinstance(mime_type, str):
-            raise TypeError(f"Expected 'mime_type' to be a string, got {type(mime_type).__name__}")
+        if not isinstance(data, bytes):
+            raise TypeError(f"Expected 'data' to be bytes, got {type(data).__name__}")
 
-        # Encode stream to Base64
-        content = base64.b64encode(stream).decode("utf-8")
+        # Encode byte array to Base64
+        content = base64.b64encode(data).decode("utf-8")
 
-        super().__init__(content, disposition, filename, mime_type)
+        return Attachment(content, filename, mime_type, disposition, cid)
