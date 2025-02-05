@@ -13,7 +13,7 @@ where = ["src"]
 name = "ser-mail-api"
 dynamic = ["version"]
 readme = "README.md"
-description = "Secure Email Relay Mail API"
+description = "Proofpoint Secure Email Relay Mail API"
 license = { text = "MIT" }
 requires-python = ">3.9"
 dependencies = [
