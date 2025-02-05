@@ -1,31 +1,32 @@
 # Proofpoint Secure Email Relay Mail API Package
 
 [![PyPI Downloads](https://static.pepy.tech/badge/ser-mail-api)](https://pepy.tech/projects/ser-mail-api)  
-Library implements all the functions of the SER Email Relay API via Python.
+This library implements all the functions of the SER Email Relay API via Python.
 
 ## Requirements
-* Python 3.9+
-* requests
-* requests-oauth2client
-* pysocks
-* Active Proofpoint SER API credentials
+
+- Python 3.9+
+- `requests`
+- `requests-oauth2client`
+- `pysocks`
+- Active Proofpoint SER API credentials
 
 ### Installing the Package
 
-You can install the tool using the following command directly from Github.
+You can install the tool using the following command directly from GitHub:
 
-```
+```bash
 pip install git+https://github.com/pfptcommunity/ser-mail-api-python.git
 ```
 
-or can install the tool using pip.
+Alternatively, you can install the tool using pip:
 
-```
-# When testing on Ubuntu 24.04 the following will not work:
+```bash
+# Note: This may not work on Ubuntu 24.04:
 pip install ser-mail-api
 ```
 
-If you see an error similar to the following:
+If you encounter an error similar to the following:
 
 ```
 error: externally-managed-environment
@@ -50,22 +51,22 @@ note: If you believe this is a mistake, please contact your Python installation 
 hint: See PEP 668 for the detailed specification.
 ```
 
-You should use install pipx or you can configure your own virtual environment and use the command referenced above.
+You should install `pipx` or configure your own virtual environment and use the command referenced above:
 
-```
+```bash
 pipx install ser-mail-api
 ```
 
 ## Features
 
 - **Send Emails**: Easily compose and send emails with minimal code.
-- **Support for Attachments**
+- **Support for Attachments**:
     - Attach files from disk
     - Encode attachments as Base64
     - Send byte[] attachments
-- **Support for Inline HTML Content**
-    - Using the following syntax `<img src=\"cid:logo\">`
-    - Content-ID can be set manually or auto generated
+- **Support for Inline HTML Content**:
+    - Using the syntax `<img src="cid:logo">`
+    - Content-ID can be set manually or auto-generated
 - **HTML & Plain Text Content**: Supports both plain text and HTML email bodies.
 - **Recipient Management**: Add `To`, `CC`, and `BCC` recipients with ease.
 - **Reply Management**: Add 'Reply-To' addresses to redirect replies.
@@ -85,9 +86,9 @@ if __name__ == "__main__":
     # Add text content body
     message.add_content(Content("This is a test message", ContentType.Text))
 
-    # Add html content body, with embedded image.
+    # Add HTML content body, with embedded image
     message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
-    # Create an inline attachment from disk and set the cid.
+    # Create an inline attachment from disk and set the cid
     message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
 
     # Add recipients
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     message.add_attachment(Attachment.from_file("C:/temp/file.csv"))
     message.add_attachment(Attachment.from_bytes(b"Sample bytes", "bytes.txt", "text/plain"))
 
-    # Set or more Reply-To addresses
+    # Set one or more Reply-To addresses
     message.add_reply_to(MailUser("noreply@proofpoint.com", "No Reply"))
 
     # Send the email
@@ -119,9 +120,7 @@ if __name__ == "__main__":
     print("Request ID:", result.request_id)
 ```
 
----
-
-## Attachment mime type deduction behavior
+## Attachment MIME Type Deduction Behavior
 
 When creating attachments, the library automatically attempts to determine the MIME type. This detection is based on:
 
@@ -134,43 +133,45 @@ If the MIME type cannot be determined, an exception will be raised.
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    # Create an attachment from disk, the mime type will be "application/vnd.ms-excel", and disposition will be "Disposition.Attachment"
+    # Create an attachment from disk; the MIME type will be "application/vnd.ms-excel", and disposition will be "Disposition.Attachment"
     Attachment.from_file("C:/temp/file.csv")
-    # This will throw an error, as the mime type is unknown.  
+    # This will throw an error, as the MIME type is unknown
     Attachment.from_file("C:/temp/file.unknown")
-    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be unknown.txt, and mime type "text/plain"
+    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be unknown.txt, and MIME type "text/plain"
     Attachment.from_file("C:/temp/file.unknown", filename="unknown.txt")
-    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be file.unknown, and mime type "text/plain"
+    # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be file.unknown, and MIME type "text/plain"
     Attachment.from_file("C:/temp/file.unknown", mime_type="text/plain")
 ```
 
 ## Inline Attachments and Content-IDs
 
-When creating attachments they are `Disposition.Attachment` by default. To properly reference a **Content-ID** (e.g., `<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`. 
-If the attachment type is set to `Disposition.Inline` a default unique **Content-ID** will be generated.     
+When creating attachments, they are `Disposition.Attachment` by default. To properly reference a **Content-ID** (e.g.,
+`<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`.
+If the attachment type is set to `Disposition.Inline`, a default unique **Content-ID** will be generated.
 
 ### Using Dynamically Generated Content-ID
 
-The below example demonstrates how to create inline content with a dynamically generated Content-ID inside an HTML message body. 
+The example below demonstrates how to create inline content with a dynamically generated Content-ID inside an HTML
+message body.
 
 ```python
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
     client = Client("<client_id>", "<client_secret>")
-    
+
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
 
     # Create an inline attachment with dynamically generated Content-ID
     logo = Attachment.from_file("C:/temp/logo.png", Disposition.Inline)
-    
-    # Add html content body, with embedded image
+
+    # Add HTML content body, with embedded image
     message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:{logo.cid}\">", ContentType.Html))
 
     # Add the attachment to the message
     message.add_attachment(logo)
-    
+
     # Add recipients
     message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
 
@@ -182,23 +183,24 @@ if __name__ == "__main__":
     print("Message ID:", result.message_id)
     print("Request ID:", result.request_id)
 ```
-### Setting a custom Content-ID
 
-The below example demonstrates how to create inline content with custom Content-ID inside an HTML message body. 
+### Setting a Custom Content-ID
+
+The example below demonstrates how to create inline content with a custom Content-ID inside an HTML message body.
 
 ```python
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
     client = Client("<client_id>", "<client_secret>")
-    
+
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
 
     # Add an inline attachment with a custom Content-ID
     message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
-    
-    # Add html content body, with embedded image.
+
+    # Add HTML content body, with embedded image
     message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
 
     # Add recipients
@@ -212,6 +214,45 @@ if __name__ == "__main__":
     print("Message ID:", result.message_id)
     print("Request ID:", result.request_id)
 ```
+
+### Proxy Support
+
+Socks5 Proxy Example:
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    credentials = "{}:{}@".format("proxyuser", "proxypass")
+    client._session.proxies = {'https': "{}://{}{}:{}".format('socks5', credentials, '<your_proxy>', '8128')}
+```
+
+HTTP Proxy Example (Squid):
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    credentials = "{}:{}@".format("proxyuser", "proxypass")
+    client._session.proxies = {'https': "{}://{}{}:{}".format('http', credentials, '<your_proxy>', '3128')}
+
+```
+
+### HTTP Timeout Settings
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == '__main__':
+    client = Client("<client_id>", "<client_secret>")
+    # Timeout in seconds, connect timeout
+    client.timeout = 600
+    # Timeout advanced, connect / read timeout
+    client.timeout = (3.05, 27)
+```
+
 ## Known Issues
 
 There is a known issue where **empty file content** results in a **400 Bad Request** error.
@@ -238,14 +279,10 @@ Raw JSON: {"request_id":"fe9a1acf60a20c9d90bed843f6530156","reason":"attachments
 
 This issue has been reported to **Proofpoint Product Management**.
 
----
-
 ## Limitations
 
 - Currently, **empty attachments are not supported** by the API.
 - No other known limitations.
-
----
 
 ## Additional Resources
 
