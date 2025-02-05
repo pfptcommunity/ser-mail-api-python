@@ -271,7 +271,7 @@ There is a known issue where **empty file content** results in a **400 Bad Reque
 🔹 **API Response:**
 
 ```
-Status Code: 400 BadRequest
+Status Code: 400/BadRequest
 Message ID:
 Reason: attachments[0].content is required
 Request ID: fe9a1acf60a20c9d90bed843f6530156
