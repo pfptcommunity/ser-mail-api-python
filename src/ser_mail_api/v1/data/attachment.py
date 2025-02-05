@@ -65,6 +65,8 @@ class Attachment:
             raise ValueError("Invalid Base64 content")
         if len(filename) > 1000:
             raise ValueError("Filename must be at most 1000 characters long")
+        if not filename.strip():
+            raise ValueError("Filename type must be a non-empty string")
         if not mime_type.strip():
             raise ValueError("Mime type must be a non-empty string")
 
