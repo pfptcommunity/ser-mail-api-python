@@ -56,17 +56,20 @@ class Attachment:
         if mime_type is not None and not isinstance(mime_type, str):
             raise TypeError(f"Expected 'mime_type' to be a string, got {type(mime_type).__name__}")
 
+        # Validate specific constraints
+        if not _is_valid_base64(content):
+            raise ValueError("Invalid Base64 content")
+
+        if not filename.strip():
+            raise ValueError("Filename must be a non-empty string")
+
+        if len(filename) > 1000:
+            raise ValueError("Filename must be at most 1000 characters long")
+
         # User provided mime_type or try to deduce it from filename
         if mime_type is None:
             mime_type = _deduce_mime_type(filename)
 
-        # Validate specific constraints
-        if not _is_valid_base64(content):
-            raise ValueError("Invalid Base64 content")
-        if len(filename) > 1000:
-            raise ValueError("Filename must be at most 1000 characters long")
-        if not filename.strip():
-            raise ValueError("Filename type must be a non-empty string")
         if not mime_type.strip():
             raise ValueError("Mime type must be a non-empty string")
 
