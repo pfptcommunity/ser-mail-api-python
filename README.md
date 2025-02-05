@@ -130,9 +130,6 @@ When creating attachments, the library automatically attempts to determine the M
 
 If the MIME type cannot be determined, an exception will be raised.
 
-By default, attachments use `Disposition.Attachment`. If you need to reference an attachment using a **Content-ID** (
-e.g., `<img src="cid:logo">`), you must explicitly set `Disposition.Inline`.
-
 ```python
 from ser_mail_api.v1 import *
 
@@ -147,7 +144,28 @@ if __name__ == "__main__":
     Attachment.from_file("C:/temp/file.unknown", mime_type="text/plain")
 ```
 
----
+## Inline Attachments and Content-IDs
+
+When adding attachments they are `Disposition.Attachment` by default. To properly reference a content **Content-ID** (e.g., `<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`. 
+
+```python
+    # Create a new Message object
+    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
+
+    # Add text content body
+    message.add_content(Content("This is a test message", ContentType.Text))
+
+    # Using the automatically assigned content id
+    inline_attachment = Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline)
+    
+    # Add html content body, with embedded image.
+    message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
+
+    # Create an inline attachment from disk and set the cid.
+    message.add_attachment(Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline, cid="logo"))
+
+
+```
 
 ## Known Issues
 
