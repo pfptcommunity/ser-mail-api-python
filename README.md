@@ -69,7 +69,7 @@ pipx install ser-mail-api
     - Content-ID can be set manually or auto-generated
 - **HTML & Plain Text Content**: Supports both plain text and HTML email bodies.
 - **Recipient Management**: Add `To`, `CC`, and `BCC` recipients with ease.
-- **Reply Management**: Add 'Reply-To' addresses to redirect replies.
+- **Reply Management**: Add `Reply-To` addresses to redirect replies.
 
 ## Quick Start
 
