@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Send the email
     result = client.send(message)
 
-    print("HTTP Response: {}/{}".format(result.get_status(),result.get_reason()))
+    print("HTTP Response: {}/{}".format(result.get_status(), result.get_reason()))
     print("Reason:", result.reason)
     print("Message ID:", result.message_id)
     print("Request ID:", result.request_id)
