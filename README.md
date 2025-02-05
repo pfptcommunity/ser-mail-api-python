@@ -94,9 +94,13 @@ if __name__ == "__main__":
     message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
     message.add_to(MailUser("recipient2@example.com", "Recipient 2"))
 
-    # Add CC and BCC
+    # Add CC
     message.add_cc(MailUser("cc1@example.com", "CC Recipient 1"))
+    message.add_cc(MailUser("cc2@example.com", "CC Recipient 2"))
+
+    # Add BCC
     message.add_bcc(MailUser("bcc1@example.com", "BCC Recipient 1"))
+    message.add_bcc(MailUser("bcc2@example.com", "BCC Recipient 2"))
 
     # Add attachments
     message.add_attachment(Attachment.from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt"))
