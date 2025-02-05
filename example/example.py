@@ -10,45 +10,41 @@ if __name__ == "__main__":
     client = Client(api_key_data.get("client_id"), api_key_data.get("client_secret"))
 
     # Create a new Message object
-    message = Message("This is a test email", MailUser("sender@proofpoint.com", "Joe Sender"))
+    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
 
-    # Add content body
+    # Add text content body
     message.add_content(Content("This is a test message", ContentType.Text))
-    message.add_content(Content("<b>This is a test message</b>", ContentType.Html))
 
-    # Add To
-    message.add_to(MailUser("to_recipient1@proofpoint.com", "Recipient 1"))
-    message.add_to(MailUser("to_recipien2@proofpoint.com", "Recipient 2"))
+    # Add html content body, with embedded image.
+    message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
 
-    # Add Cc
-    message.add_cc(MailUser("cc_recipien1@proofpoint.com", "Carbon Copy 1"))
-    message.add_cc(MailUser("cc_recipien2@proofpoint.com", "Carbon Copy 2"))
+    # Create an inline attachment from disk and set the cid.
+    message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
 
-    # Add Bcc
-    message.add_bcc(MailUser("bcc_recipien1@proofpoint.com", "Blind Carbon Copy 1"))
-    message.add_bcc(MailUser("bcc_recipien2@proofpoint.com", "Blind Carbon Copy 2"))
+    # Add recipients
+    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
+    message.add_to(MailUser("recipient2@example.com", "Recipient 2"))
 
-    # Add Base64 encoded attachment
-    message.add_attachment(Attachment("VGhpcyBpcyBhIHRlc3Qh", Disposition.Attachment, "test.txt", "text/plain"))
+    # Add CC
+    message.add_cc(MailUser("cc1@example.com", "CC Recipient 1"))
+    message.add_cc(MailUser("cc2@example.com", "CC Recipient 2"))
 
-    # Add File attachment from disk, if disposition is not passed, the default is Disposition.Attachment
-    message.add_attachment(FileAttachment(r"C:\temp\file.csv", Disposition.Attachment))
+    # Add BCC
+    message.add_bcc(MailUser("bcc1@example.com", "BCC Recipient 1"))
+    message.add_bcc(MailUser("bcc2@example.com", "BCC Recipient 2"))
 
-    # In the following example, we will create a byte stream from a string. This byte array is converted
-    # to base64 encoding within the BinaryAttachment object
-    text = "This is a sample text stream."
+    # Add attachments
+    message.add_attachment(Attachment.from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt"))
+    message.add_attachment(Attachment.from_file("C:/temp/file.csv"))
+    message.add_attachment(Attachment.from_bytes(b"Sample bytes", "bytes.txt", "text/plain"))
 
-    # Convert the string into bytes
-    bytes = text.encode("utf-8")
+    # Set or more Reply-To addresses
+    message.add_reply_to(MailUser("noreply@proofpoint.com", "No Reply"))
 
-    # Add Byte array as attachment, if disposition is not passed, the default is Disposition.Attachment
-    message.add_attachment(BinaryAttachment(bytes,"bytes.txt", "text/plain", Disposition.Attachment))
-
+    # Send the email
     result = client.send(message)
 
-    print("HTTP Status", result.get_status())
-    print("HTTP Reason", result.get_reason())
-
-    print("Reason:", result.reason)
+    print("HTTP Status:", result.get_status())
+    print("HTTP Reason:", result.get_reason())
     print("Message ID:", result.message_id)
     print("Request ID:", result.request_id)
