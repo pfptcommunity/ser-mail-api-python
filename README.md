@@ -88,6 +88,7 @@ if __name__ == "__main__":
 
     # Add HTML content body, with embedded image
     message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
+
     # Create an inline attachment from disk and set the cid
     message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
 
