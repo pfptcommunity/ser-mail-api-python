@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # Add html content body, with embedded image.
     message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
     # Create an inline attachment from disk and set the cid.
-    message.add_attachment(Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline, cid="logo"))
+    message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
 
     # Add recipients
     message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
@@ -146,27 +146,72 @@ if __name__ == "__main__":
 
 ## Inline Attachments and Content-IDs
 
-When adding attachments they are `Disposition.Attachment` by default. To properly reference a content **Content-ID** (e.g., `<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`. 
+When creating attachments they are `Disposition.Attachment` by default. To properly reference a **Content-ID** (e.g., `<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`. 
+If the attachment type is set to `Disposition.Inline` a default unique **Content-ID** will be generated.     
+
+### Using Dynamically Generated Content-ID
+
+The below example demonstrates how to create inline content with a dynamically generated Content-ID inside an HTML message body. 
 
 ```python
+from ser_mail_api.v1 import *
+
+if __name__ == "__main__":
+    client = Client("<client_id>", "<client_secret>")
+    
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
 
-    # Add text content body
-    message.add_content(Content("This is a test message", ContentType.Text))
+    # Create an inline attachment with dynamically generated Content-ID
+    logo = Attachment.from_file("C:/temp/logo.png", Disposition.Inline)
+    
+    # Add html content body, with embedded image
+    message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:{logo.cid}\">", ContentType.Html))
 
-    # Using the automatically assigned content id
-    inline_attachment = Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline)
+    # Add the attachment to the message
+    message.add_attachment(logo)
+    
+    # Add recipients
+    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
+
+    # Send the email
+    result = client.send(message)
+
+    print("HTTP Status:", result.get_status())
+    print("HTTP Reason:", result.get_reason())
+    print("Message ID:", result.message_id)
+    print("Request ID:", result.request_id)
+```
+### Setting a custom Content-ID
+
+The below example demonstrates how to create inline content with custom Content-ID inside an HTML message body. 
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == "__main__":
+    client = Client("<client_id>", "<client_secret>")
+    
+    # Create a new Message object
+    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
+
+    # Add an inline attachment with a custom Content-ID
+    message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
     
     # Add html content body, with embedded image.
-    message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
+    message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
 
-    # Create an inline attachment from disk and set the cid.
-    message.add_attachment(Attachment.from_file("C:/temp/logo.png", disposition=Disposition.Inline, cid="logo"))
+    # Add recipients
+    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
 
+    # Send the email
+    result = client.send(message)
 
+    print("HTTP Status:", result.get_status())
+    print("HTTP Reason:", result.get_reason())
+    print("Message ID:", result.message_id)
+    print("Request ID:", result.request_id)
 ```
-
 ## Known Issues
 
 There is a known issue where **empty file content** results in a **400 Bad Request** error.
