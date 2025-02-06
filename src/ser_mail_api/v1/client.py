@@ -42,7 +42,8 @@ class Client(Resource):
         # Deal with OAuth2
         oauth2_client = OAuth2Client("https://mail.ser.proofpoint.com/v1/token", auth=(client_id, client_secret))
         oauth2_client.client_credentials({"grant_type": "client_credentials"})
-        self._session.auth = OAuth2ClientCredentialsAuth(oauth2_client, scope="client_credentials")
+        # Refresh token 5 minutes before expiration, this is documented in the API guide.
+        self._session.auth = OAuth2ClientCredentialsAuth(oauth2_client,leeway=300, scope="client_credentials")
         self.__send = Send(self, 'send')
 
     @property
