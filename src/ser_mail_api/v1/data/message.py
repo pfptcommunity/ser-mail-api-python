@@ -51,11 +51,13 @@ class Message:
         return self.__headers.header_from if self.__headers else None
 
     @header_from.setter
-    def header_from(self, header_from: MailUser):
-        if self.__headers is None:
+    def header_from(self, header_from: Optional["MailUser"]):
+        if header_from is None:
+            self.__headers = None
+        elif self.__headers is None:
             self.__headers = MessageHeaders(header_from)
         else:
-            self.__headers.header_from = header_from
+            self.__headers.From = header_from
 
     @property
     def headers(self) -> Optional[MessageHeaders]:
