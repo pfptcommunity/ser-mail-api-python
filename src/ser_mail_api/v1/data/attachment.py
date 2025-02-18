@@ -137,7 +137,7 @@ class Attachment:
         Args:
             base64string (str): base64 encoded content.
             filename (str): Filename of the attachment.
-            mime_type (str): MIME type of the content. If None, it will try to deduce it from the filename.
+            mime_type (Optional[str]): MIME type of the content. If None, it will try to deduce it from the filename.
             disposition (Disposition): The disposition of the attachment (inline or attachment).
             cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
         """
@@ -169,13 +169,13 @@ class Attachment:
         return Attachment(content, filename, mime_type, disposition, cid)
 
     @staticmethod
-    def from_bytes(data: bytes, filename: str, mime_type: str, disposition: Disposition = Disposition.Attachment,
+    def from_bytes(data: bytes, filename: str, mime_type: Optional[str] = None, disposition: Disposition = Disposition.Attachment,
                    cid: Optional[str] = None) -> Attachment:
         """
         Args:
             data (bytes): Byte array of the content.
             filename (str): Filename of the attachment.
-            mime_type (str): MIME type of the content. If None, it will try to deduce it from the filename.
+            mime_type (Optional[str]): MIME type of the content. If None, it will try to deduce it from the filename.
             disposition (Disposition): The disposition of the attachment (inline or attachment).
             cid (Optional[str]): The Content-ID of the attachment. If not specified, for an inline attachment the value will be a random UUID.
         """
