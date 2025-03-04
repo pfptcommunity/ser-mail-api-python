@@ -59,7 +59,7 @@ pipx install ser-mail-api
 
 ## Features
 
-- **Send Emails**: Easily compose and send emails with minimal code.
+- **Send Emails**: Easily compose and send emails with minimal code using a fluent builder pattern.
 - **Support for Attachments**:
     - Attach files from disk
     - Encode attachments as Base64
@@ -74,50 +74,96 @@ pipx install ser-mail-api
 ## Quick Start
 
 ```python
-import json
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
+    # Initialize the Client with OAuth credentials from the config
     client = Client("<client_id>", "<client_secret>")
 
-    # Create a new Message object
-    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
+    # Use the fluent builder to construct and send an email
+    message = (
+        Message.Builder()
+        .subject("This is a test email")
+        .from_address("sender@example.com", "Joe Sender")
+        .add_content("This is a test message", ContentType.Text)
+        .add_to("recipient1@example.com", "Recipient 1")
+        .build()
+    )
 
-    # Add text content body
-    message.add_content(Content("This is a test message", ContentType.Text))
-
-    # Add HTML content body, with embedded image
-    message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
-
-    # Create an inline attachment from disk and set the cid
-    message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
-
-    # Add recipients
-    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
-    message.add_to(MailUser("recipient2@example.com", "Recipient 2"))
-
-    # Add CC
-    message.add_cc(MailUser("cc1@example.com", "CC Recipient 1"))
-    message.add_cc(MailUser("cc2@example.com", "CC Recipient 2"))
-
-    # Add BCC
-    message.add_bcc(MailUser("bcc1@example.com", "BCC Recipient 1"))
-    message.add_bcc(MailUser("bcc2@example.com", "BCC Recipient 2"))
-
-    # Add attachments
-    message.add_attachment(Attachment.from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt"))
-    message.add_attachment(Attachment.from_file("C:/temp/file.csv"))
-    message.add_attachment(Attachment.from_bytes(b"Sample bytes", "bytes.txt", "text/plain"))
-
-    # Set one or more Reply-To addresses
-    message.add_reply_to(MailUser("noreply@proofpoint.com", "No Reply"))
-
-    # Send the email
+    # Send the message asynchronously and wait for the result
     result = client.send(message)
 
+    # Output the HTTP status code from the API response
     print("HTTP Response: {}/{}".format(result.get_status(), result.get_reason()))
-    print("Reason:", result.reason)
+    # Output the message ID from the API response
     print("Message ID:", result.message_id)
+    # Output the reason (if any) from the API response
+    print("Reason:", result.reason)
+    # Output the request ID from the API response
+    print("Request ID:", result.request_id)
+```
+
+## Advanced Emails
+
+```python
+from ser_mail_api.v1 import *
+
+if __name__ == "__main__":
+    # Initialize the Client with OAuth credentials from the config
+    client = Client("<client_id>", "<client_secret>")
+
+    # Construct logo_a attachment with dynamic content ID
+    logo_b = (
+        Attachment.Builder()
+        .from_file("c:/temp/logo_b.png")  # Load logo_b from file
+        .disposition_inline()  # Set dynamic content ID
+        .build()
+    )
+
+    # Use the fluent builder to construct the Message in a single chain
+    message = (
+        Message.Builder()
+        .subject("This is a test email")  # Sets the email subject (required)
+        .from_address("sender@example.com", "Joe Sender")  # Sets the sender (required)
+        .add_content("This is a test message", ContentType.Text)  # Adds plain text content (required minimum)
+        .add_content(  # Required: Adds HTML content referencing both static and dynamic CIDs
+            f"<b>Static CID</b><br><img src=\"cid:logo\"><br><b>Dynamic CID</b><br><img src=\"cid:{logo_b.cid}\">",
+            ContentType.Html)  # Uses logo_b's auto-assigned content ID retrieved from logo_b.cid
+        .add_attachment(Attachment.Builder()
+                        .from_file("C:/temp/logo_a.png")
+                        .disposition_inline("logo")
+                        .build())  # Adds an inline attachment with content ID "logo"
+        .add_to("recipient1@example.com", "Recipient 1")  # Adds a primary recipient (required minimum)
+        .add_to("recipient2@example.com", "Recipient 2")  # Adds a second primary recipient
+        .add_cc("cc1@example.com", "CC Recipient 1")  # Adds a CC recipient
+        .add_cc("cc2@example.com", "CC Recipient 2")  # Adds a second CC recipient
+        .add_bcc("bcc1@example.com", "BCC Recipient 1")  # Adds a BCC recipient
+        .add_bcc("bcc2@example.com", "BCC Recipient 2")  # Adds a second BCC recipient
+        .add_attachment(Attachment.Builder()
+                        .from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt")
+                        .build())  # Adds an attachment from Base64-encoded text
+        .add_attachment(Attachment.Builder()
+                        .from_file("C:/temp/file.csv")
+                        .build())  # Adds an attachment from a file
+        .add_attachment(Attachment.Builder()
+                        .from_bytes(b"Sample bytes", "bytes.txt")
+                        .mime_type("text/plain")
+                        .build())  # Adds an attachment from a byte array
+        .header_from("fancysender@example.com", "Header From")  # Sets the header "From" field
+        .add_reply_to("noreply@proofpoint.com", "No Reply")  # Sets a Reply-To address
+        .build()  # Constructs the Message, enforcing required fields (from, tos, subject, content)
+    )
+
+    # Send the message asynchronously and wait for the result
+    result = client.send(message)
+
+    # Output the HTTP status code from the API response
+    print("HTTP Response: {}/{}".format(result.get_status(), result.get_reason()))
+    # Output the message ID from the API response
+    print("Message ID:", result.message_id)
+    # Output the reason (if any) from the API response
+    print("Reason:", result.reason)
+    # Output the request ID from the API response
     print("Request ID:", result.request_id)
 ```
 
@@ -135,20 +181,20 @@ from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
     # Create an attachment from disk; the MIME type will be "application/vnd.ms-excel", and disposition will be "Disposition.Attachment"
-    Attachment.from_file("C:/temp/file.csv")
+    Attachment.Builder().from_file("C:/temp/file.csv").build()
     # This will throw an error, as the MIME type is unknown
-    Attachment.from_file("C:/temp/file.unknown")
+    Attachment.Builder().from_file("C:/temp/file.unknown").build()
     # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be unknown.txt, and MIME type "text/plain"
-    Attachment.from_file("C:/temp/file.unknown", filename="unknown.txt")
+    Attachment.Builder().from_file("C:/temp/file.unknown").filename("unknown.txt").build()
     # Create an attachment and specify the type information. The disposition will be "Disposition.Attachment", filename will be file.unknown, and MIME type "text/plain"
-    Attachment.from_file("C:/temp/file.unknown", mime_type="text/plain")
+    Attachment.Builder().from_file("C:/temp/file.unknown").mime_type("text/plain").build()
 ```
 
 ## Inline Attachments and Content-IDs
 
-When creating attachments, they are `Disposition.Attachment` by default. To properly reference a **Content-ID** (e.g.,
-`<img src="cid:logo">`), you must explicitly set the attachment disposition to `Disposition.Inline`.
-If the attachment type is set to `Disposition.Inline`, a default unique **Content-ID** will be generated.
+When creating attachments, they are `Disposition.Attachment` by default. To use a **Content-ID** (e.g.,
+`<img src="cid:logo">`) in HTML content, set the disposition to `Disposition.Inline`. The library supports both manual
+and auto-generated content IDs.
 
 ### Using Dynamically Generated Content-ID
 
@@ -159,30 +205,17 @@ message body.
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>", "<client_secret>")
+    # Create an inline attachment with an auto-generated content ID
+    logo = Attachment.Builder().from_file("C:/temp/logo.png").disposition_inline().build()
 
-    # Create a new Message object
-    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
-
-    # Create an inline attachment with dynamically generated Content-ID
-    logo = Attachment.from_file("C:/temp/logo.png", Disposition.Inline)
-
-    # Add HTML content body, with embedded image
-    message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:{logo.cid}\">", ContentType.Html))
-
-    # Add the attachment to the message
-    message.add_attachment(logo)
-
-    # Add recipients
-    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
-
-    # Send the email
-    result = client.send(message)
-
-    print("HTTP Response: {}/{}".format(result.get_status(), result.get_reason()))
-    print("Reason:", result.reason)
-    print("Message ID:", result.message_id)
-    print("Request ID:", result.request_id)
+    # Use the dynamic content ID in HTML content
+    message = (Message.Builder()
+               .subject("Dynamic CID Test")
+               .from_address("sender@example.com")
+               .add_to("recipient@example.com")
+               .add_content(f"<b>Test</b><br><img src=\"cid:{logo.cid}\">", ContentType.Html)
+               .add_attachment(logo)
+               .build())
 ```
 
 ### Setting a Custom Content-ID
@@ -193,27 +226,16 @@ The example below demonstrates how to create inline content with a custom Conten
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>", "<client_secret>")
-
-    # Create a new Message object
-    message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
-
-    # Add an inline attachment with a custom Content-ID
-    message.add_attachment(Attachment.from_file("C:/temp/logo.png", Disposition.Inline, "logo"))
-
-    # Add HTML content body, with embedded image
-    message.add_content(Content(f"<b>This is a test message</b><br><img src=\"cid:logo\">", ContentType.Html))
-
-    # Add recipients
-    message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
-
-    # Send the email
-    result = client.send(message)
-
-    print("HTTP Response: {}/{}".format(result.get_status(), result.get_reason()))
-    print("Reason:", result.reason)
-    print("Message ID:", result.message_id)
-    print("Request ID:", result.request_id)
+    message = (Message.Builder()
+               .subject("Static CID Test")
+               .from_address("sender@example.com")
+               .add_to("recipient@example.com")
+               .add_content("<b>Test</b><br><img src=\"cid:logo\">", ContentType.Html)
+               .add_attachment(Attachment.Builder()
+                               .from_file("C:/temp/logo.png")
+                               .disposition_inline("logo")
+                               .build())
+               .build())
 ```
 
 ### Proxy Support
@@ -281,6 +303,7 @@ Raw JSON: {"request_id":"fe9a1acf60a20c9d90bed843f6530156","reason":"attachments
 This issue has been reported to **Proofpoint Product Management**.
 
 ## Limitations
+
 - The Proofpoint API currently does not support **empty file attachments**.
 - If an empty file is sent, you will receive a **400 Bad Request** error.
 
