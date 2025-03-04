@@ -21,35 +21,35 @@ if __name__ == "__main__":
     # Use the fluent builder to construct the Message in a single chain
     message = (
         Message.Builder()
-        .subject("This is a test email") # Sets the email subject (required)
-        .from_address("sender@example.com", "Joe Sender") # Sets the sender (required)
-        .add_content("This is a test message", ContentType.Text) # Adds plain text content (required minimum)
-        .add_content( # Required: Adds HTML content referencing both static and dynamic CIDs
+        .subject("This is a test email")  # Sets the email subject (required)
+        .from_address("sender@example.com", "Joe Sender")  # Sets the sender (required)
+        .add_content("This is a test message", ContentType.Text)  # Adds plain text content (required minimum)
+        .add_content(  # Required: Adds HTML content referencing both static and dynamic CIDs
             f"<b>Static CID</b><br><img src=\"cid:logo\"><br><b>Dynamic CID</b><br><img src=\"cid:{logo_b.cid}\">",
-            ContentType.Html) # Uses logo_b's auto-assigned content ID retrieved from logo_b.cid
+            ContentType.Html)  # Uses logo_b's auto-assigned content ID retrieved from logo_b.cid
         .add_attachment(Attachment.Builder()
                         .from_file("C:/temp/logo_a.png")
                         .disposition_inline("logo")
-                        .build()) # Adds an inline attachment with content ID "logo"
-        .add_to("recipient1@example.com", "Recipient 1") # Adds a primary recipient (required minimum)
-        .add_to("recipient2@example.com", "Recipient 2") # Adds a second primary recipient
-        .add_cc("cc1@example.com", "CC Recipient 1") # Adds a CC recipient
-        .add_cc("cc2@example.com", "CC Recipient 2") #  Adds a second CC recipient
-        .add_bcc("bcc1@example.com", "BCC Recipient 1") #  Adds a BCC recipient
-        .add_bcc("bcc2@example.com", "BCC Recipient 2") # Adds a second BCC recipient
+                        .build())  # Adds an inline attachment with content ID "logo"
+        .add_to("recipient1@example.com", "Recipient 1")  # Adds a primary recipient (required minimum)
+        .add_to("recipient2@example.com", "Recipient 2")  # Adds a second primary recipient
+        .add_cc("cc1@example.com", "CC Recipient 1")  # Adds a CC recipient
+        .add_cc("cc2@example.com", "CC Recipient 2")  # Adds a second CC recipient
+        .add_bcc("bcc1@example.com", "BCC Recipient 1")  # Adds a BCC recipient
+        .add_bcc("bcc2@example.com", "BCC Recipient 2")  # Adds a second BCC recipient
         .add_attachment(Attachment.Builder()
                         .from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt")
-                        .build()) # Adds an attachment from Base64-encoded text
+                        .build())  # Adds an attachment from Base64-encoded text
         .add_attachment(Attachment.Builder()
                         .from_file("C:/temp/file.csv")
-                        .build()) # Adds an attachment from a file
+                        .build())  # Adds an attachment from a file
         .add_attachment(Attachment.Builder()
                         .from_bytes(b"Sample bytes", "bytes.txt")
                         .mime_type("text/plain")
-                        .build()) # Adds an attachment from a byte array
-        .header_from("fancysender@example.com", "Header From") # Sets the header "From" field
-        .add_reply_to("noreply@proofpoint.com", "No Reply") # Sets a Reply-To address
-        .build() # Constructs the Message, enforcing required fields (from, tos, subject, content)
+                        .build())  # Adds an attachment from a byte array
+        .header_from("fancysender@example.com", "Header From")  # Sets the header "From" field
+        .add_reply_to("noreply@proofpoint.com", "No Reply")  # Sets a Reply-To address
+        .build()  # Constructs the Message, enforcing required fields (from, tos, subject, content)
     )
 
     # Send the message asynchronously and wait for the result

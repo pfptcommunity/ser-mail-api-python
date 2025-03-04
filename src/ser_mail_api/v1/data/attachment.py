@@ -245,9 +245,9 @@ class Attachment:
         content = base64.b64encode(data).decode("utf-8")
         return Attachment(content, filename, mime_type, disposition, cid)
 
-
     class Builder:
         """Initial step for constructing an Attachment, requiring content and filename specification."""
+
         def from_base64(self, base64_content: str, filename: str) -> _OptionalStep:
             """Set content from a Base64-encoded string.
 
