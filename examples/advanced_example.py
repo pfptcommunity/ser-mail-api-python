@@ -31,6 +31,7 @@ if __name__ == "__main__":
                         .from_file("C:/temp/logo_a.png")
                         .disposition_inline("logo")
                         .build())  # Adds an inline attachment with content ID "logo"
+        .add_attachment(logo_b) # Adds logo_b with its dynamically assigned content ID
         .add_to("recipient1@example.com", "Recipient 1")  # Adds a primary recipient (required minimum)
         .add_to("recipient2@example.com", "Recipient 2")  # Adds a second primary recipient
         .add_cc("cc1@example.com", "CC Recipient 1")  # Adds a CC recipient
