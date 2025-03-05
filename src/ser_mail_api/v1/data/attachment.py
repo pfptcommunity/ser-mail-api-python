@@ -5,6 +5,7 @@ import json
 import mimetypes
 import os
 import uuid
+import warnings
 from enum import Enum
 from typing import Dict, Optional
 
@@ -68,17 +69,17 @@ class Attachment:
     """
 
     def __init__(self, content: str, filename: str, mime_type: Optional[str] = None,
-                 disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None):
+                 disposition: Disposition = Disposition.Attachment, content_id: Optional[str] = None):
         """
         Args:
             content (str): Base64-encoded content of the attachment.
             filename (str): Filename of the attachment.
             mime_type (Optional[str]): MIME type of the content. If None, deduced from filename.
             disposition (Disposition): The disposition (inline or attachment). Defaults to Attachment.
-            cid (Optional[str]): Content-ID for inline attachments. If None or empty for inline, a UUID is generated.
+            content_id (Optional[str]): Content-ID for inline attachments. If None or empty for inline, a UUID is generated.
 
         Raises:
-            TypeError: If content, filename, disposition, mime_type, or cid are of incorrect types.
+            TypeError: If content, filename, disposition, mime_type, or content_id are of incorrect types.
             ValueError: If content is invalid Base64, filename is empty, or MIME type cannot be determined.
         """
         # Validate input types
@@ -106,16 +107,16 @@ class Attachment:
             raise ValueError("Mime type must be a non-empty string")
 
         # Covers None, empty string, or whitespace-only strings
-        if not cid or cid.isspace():
-            self.__cid = str(uuid.uuid4())  # Generate a UUID
-        elif isinstance(cid, str):
-            self.__cid = cid  # Use provided string
+        if not content_id or content_id.isspace():
+            self.__content_id = str(uuid.uuid4())  # Generate a UUID
+        elif isinstance(content_id, str):
+            self.__content_id = content_id  # Use provided string
         else:
-            raise TypeError(f"Expected 'cid' to be a string or None, got {type(cid).__name__}")
+            raise TypeError(f"Expected 'content_id' to be a string or None, got {type(content_id).__name__}")
 
-        # CID only applies to inline attachments
+        # Content-ID only applies to inline attachments
         if disposition == Disposition.Attachment:
-            self.__cid = None
+            self.__content_id = None
 
         self.__content = content
         self.__disposition = disposition
@@ -124,13 +125,19 @@ class Attachment:
 
     @property
     def id(self) -> str:
-        """The Content-ID of the attachment (alias for cid)."""
-        return self.__cid
+        """The Content-ID of the attachment (alias for content_id)."""
+        warnings.warn("cid is deprecated; use content_id instead", DeprecationWarning)
+        return self.__content_id
 
     @property
     def cid(self) -> str:
+        """The Content-ID of the attachment (alias for content_id)."""
+        return self.__content_id
+
+    @property
+    def content_id(self) -> str:
         """The Content-ID of the attachment, if inline."""
-        return self.__cid
+        return self.__content_id
 
     @property
     def content(self) -> str:
@@ -165,7 +172,7 @@ class Attachment:
             "type": self.__mime_type,
         }
         if self.disposition == Disposition.Inline:
-            data["id"] = self.__cid
+            data["id"] = self.__content_id
         return data
 
     def __str__(self) -> str:
@@ -178,7 +185,7 @@ class Attachment:
 
     @staticmethod
     def from_base64(base64string: str, filename: str, mime_type: Optional[str] = None,
-                    disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None) -> Attachment:
+                    disposition: Disposition = Disposition.Attachment, content_id: Optional[str] = None) -> Attachment:
         """Create an Attachment from a Base64-encoded string.
 
         Args:
@@ -186,22 +193,22 @@ class Attachment:
             filename (str): Filename of the attachment.
             mime_type (Optional[str]): MIME type. If None, deduced from filename.
             disposition (Disposition): Disposition (inline or attachment). Defaults to Attachment.
-            cid (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
+            content_id (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
 
         Returns:
             Attachment: A new Attachment instance.
         """
-        return Attachment(base64string, filename, mime_type, disposition, cid)
+        return Attachment(base64string, filename, mime_type, disposition, content_id)
 
     @staticmethod
-    def from_file(file_path: str, disposition: Disposition = Disposition.Attachment, cid: Optional[str] = None,
+    def from_file(file_path: str, disposition: Disposition = Disposition.Attachment, content_id: Optional[str] = None,
                   filename: Optional[str] = None, mime_type: Optional[str] = None) -> Attachment:
         """Create an Attachment from a file.
 
         Args:
             file_path (str): Path to the file.
             disposition (Disposition): Disposition (inline or attachment). Defaults to Attachment.
-            cid (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
+            content_id (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
             filename (Optional[str]): Filename override. Defaults to basename of file_path.
             mime_type (Optional[str]): MIME type override. Defaults to deduced from filename.
 
@@ -219,12 +226,12 @@ class Attachment:
         if filename is None:
             filename = os.path.basename(file_path)
         content = _encode_file_content(file_path)
-        return Attachment(content, filename, mime_type, disposition, cid)
+        return Attachment(content, filename, mime_type, disposition, content_id)
 
     @staticmethod
     def from_bytes(data: bytes, filename: str, mime_type: Optional[str] = None,
                    disposition: Disposition = Disposition.Attachment,
-                   cid: Optional[str] = None) -> Attachment:
+                   content_id: Optional[str] = None) -> Attachment:
         """Create an Attachment from a byte array.
 
         Args:
@@ -232,7 +239,7 @@ class Attachment:
             filename (str): Filename of the attachment.
             mime_type (Optional[str]): MIME type. If None, deduced from filename.
             disposition (Disposition): Disposition (inline or attachment). Defaults to Attachment.
-            cid (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
+            content_id (Optional[str]): Content-ID for inline attachments. If None, a UUID is generated.
 
         Returns:
             Attachment: A new Attachment instance.
@@ -243,7 +250,7 @@ class Attachment:
         if not isinstance(data, bytes):
             raise TypeError(f"Expected 'data' to be bytes, got {type(data).__name__}")
         content = base64.b64encode(data).decode("utf-8")
-        return Attachment(content, filename, mime_type, disposition, cid)
+        return Attachment(content, filename, mime_type, disposition, content_id)
 
     class Builder:
         """Initial step for constructing an Attachment, requiring content and filename specification."""
@@ -318,7 +325,7 @@ class Attachment:
                 self.__filename = filename
                 self.__mime_type = None
                 self.__disposition = Disposition.Attachment
-                self.__cid = None
+                self.__content_id = None
 
             def disposition_attached(self) -> Attachment.Builder._OptionalStep:
                 """Set the disposition to Attachment, clearing any Content-ID.
@@ -327,25 +334,25 @@ class Attachment:
                     OptionalStep: Self, for method chaining.
                 """
                 self.__disposition = Disposition.Attachment
-                self.__cid = None
+                self.__content_id = None
                 return self
 
-            def disposition_inline(self, cid: Optional[str] = None) -> Attachment.Builder._OptionalStep:
+            def disposition_inline(self, content_id: Optional[str] = None) -> Attachment.Builder._OptionalStep:
                 """Set the disposition to Inline with an optional Content-ID.
 
                 Args:
-                    cid (Optional[str]): Content-ID for the inline attachment. If None, a UUID will be generated.
+                    content_id (Optional[str]): Content-ID for the inline attachment. If None, a UUID will be generated.
 
                 Returns:
                     OptionalStep: Self, for method chaining.
 
                 Raises:
-                    TypeError: If cid is neither a string nor None.
+                    TypeError: If content_id is neither a string nor None.
                 """
-                if cid is not None and not isinstance(cid, str):
-                    raise TypeError(f"Expected 'cid' to be a string or None, got {type(cid).__name__}")
+                if content_id is not None and not isinstance(content_id, str):
+                    raise TypeError(f"Expected 'content_id' to be a string or None, got {type(content_id).__name__}")
                 self.__disposition = Disposition.Inline
-                self.__cid = cid
+                self.__content_id = content_id
                 return self
 
             def filename(self, filename: str) -> Attachment.Builder._OptionalStep:
@@ -393,5 +400,5 @@ class Attachment:
                     filename=self.__filename,
                     mime_type=self.__mime_type,
                     disposition=self.__disposition,
-                    cid=self.__cid
+                    content_id=self.__content_id
                 )
