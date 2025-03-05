@@ -15,7 +15,7 @@ class Message:
 
     Use Message.Builder() for step-wise construction (preferred method) or __init__ for minimal setup.
     Adder methods (e.g., add_to) are supported but deprecated in favor of the.Builder() pattern.
-    Attributes use single underscores to indicate they are protected and not intended for direct modification.
+    Attributes use double underscores to indicate they are private and not intended for direct modification.
     """
 
     def __init__(self, subject: str, sender: MailUser, header_from: Optional[MailUser] = None):
@@ -29,6 +29,7 @@ class Message:
         Raises:
             TypeError: If sender or header_from (if provided) is not a MailUser, or if subject is not a string.
         """
+        warnings.warn("Direct instantiation of 'Message' deprecated; use Message.Builder", DeprecationWarning, stacklevel=2)
         if not isinstance(sender, MailUser):
             raise TypeError(f"Expected sender to be a MailUser, got {type(sender).__name__}")
         if header_from is not None and not isinstance(header_from, MailUser):
@@ -36,17 +37,41 @@ class Message:
         if not isinstance(subject, str):
             raise TypeError(f"Expected subject to be a string, got {type(subject).__name__}")
 
-        self._subject = subject
-        self._sender = sender
-        self._headers = None
+        self.__subject = subject
+        self.__sender = sender
+        self.__headers = None
         if header_from is not None:
             self.header_from = header_from
-        self._to: List[MailUser] = []
-        self._cc: List[MailUser] = []
-        self._bcc: List[MailUser] = []
-        self._reply_tos: List[MailUser] = []
-        self._attachments: List[Attachment] = []
-        self._content: List[Content] = []
+        self.__to: List[MailUser] = []
+        self.__cc: List[MailUser] = []
+        self.__bcc: List[MailUser] = []
+        self.__reply_tos: List[MailUser] = []
+        self.__attachments: List[Attachment] = []
+        self.__content: List[Content] = []
+
+    @classmethod
+    def __create(cls,
+                subject: str,
+                sender: MailUser,
+                header_from: MailUser,
+                attachments: List[Attachment],
+                content: List[Content],
+                to: List[MailUser],
+                cc: List[MailUser],
+                bcc: List[MailUser],
+                reply_tos: List[MailUser]) -> Message:
+        """ Internal method to create an Email instance. """
+        obj = cls.__new__(cls)
+        obj.__subject = subject
+        obj.__sender = sender
+        obj.__headers = MessageHeaders(header_from) if header_from is not None else None
+        obj.__attachments = attachments
+        obj.__content = content
+        obj.__to = to
+        obj.__cc = cc
+        obj.__bcc = bcc
+        obj.__reply_tos = reply_tos
+        return obj
 
     @property
     def sender(self) -> MailUser:
@@ -55,7 +80,7 @@ class Message:
         Returns:
             MailUser: The sender.
         """
-        return self._sender
+        return self.__sender
 
     @sender.setter
     def sender(self, sender: MailUser):
@@ -70,7 +95,7 @@ class Message:
         warnings.warn("sender is deprecated; use Message.Builder().sender() instead", DeprecationWarning)
         if not isinstance(sender, MailUser):
             raise TypeError(f"Expected sender to be a MailUser, got {type(sender).__name__}")
-        self._sender = sender
+        self.__sender = sender
 
     @property
     def header_sender(self) -> Optional[MailUser]:
@@ -99,7 +124,7 @@ class Message:
         Returns:
             Optional[MailUser]: The header sender, or None if no headers are set.
         """
-        return self._headers.header_from if self._headers else None
+        return self.__headers.header_from if self.__headers else None
 
     @header_from.setter
     def header_from(self, header_from: Optional[MailUser]):
@@ -109,9 +134,9 @@ class Message:
             header_from (Optional[MailUser]): The sender for the 'From' header, or None to clear headers.
         """
         if header_from is None:
-            self._headers = None
+            self.__headers = None
         else:
-            self._headers = MessageHeaders(header_from)  # Fixed from .From to constructor
+            self.__headers = MessageHeaders(header_from)  # Fixed from .From to constructor
 
     @property
     def headers(self) -> Optional[MessageHeaders]:
@@ -120,7 +145,7 @@ class Message:
         Returns:
             Optional[MessageHeaders]: The headers, or None if not set.
         """
-        return self._headers
+        return self.__headers
 
     @headers.setter
     def headers(self, headers: Optional[MessageHeaders] = None):
@@ -134,7 +159,7 @@ class Message:
         """
         if headers is not None and not isinstance(headers, MessageHeaders):
             raise TypeError(f"Expected headers to be a MessageHeaders, got {type(headers).__name__}")
-        self._headers = headers
+        self.__headers = headers
 
     def add_to(self, to_user: MailUser):
         """Add a primary recipient (To field) to the email.
@@ -150,7 +175,7 @@ class Message:
         warnings.warn("add_to is deprecated; use Message.Builder().add_to() instead", DeprecationWarning)
         if not isinstance(to_user, MailUser):
             raise TypeError(f"Expected to_user to be a MailUser, got {type(to_user).__name__}")
-        self._to.append(to_user)
+        self.__to.append(to_user)
 
     def add_cc(self, cc_user: MailUser):
         """Add a CC recipient to the email.
@@ -166,7 +191,7 @@ class Message:
         warnings.warn("add_cc is deprecated; use Message.Builder().add_cc() instead", DeprecationWarning)
         if not isinstance(cc_user, MailUser):
             raise TypeError(f"Expected cc_user to be a MailUser, got {type(cc_user).__name__}")
-        self._cc.append(cc_user)
+        self.__cc.append(cc_user)
 
     def add_bcc(self, bcc_user: MailUser):
         """Add a BCC recipient to the email.
@@ -182,7 +207,7 @@ class Message:
         warnings.warn("add_bcc is deprecated; use Message.Builder().add_bcc() instead", DeprecationWarning)
         if not isinstance(bcc_user, MailUser):
             raise TypeError(f"Expected bcc_user to be a MailUser, got {type(bcc_user).__name__}")
-        self._bcc.append(bcc_user)
+        self.__bcc.append(bcc_user)
 
     def add_reply_to(self, reply_to_user: MailUser):
         """Add a Reply-To recipient to the email.
@@ -198,7 +223,7 @@ class Message:
         warnings.warn("add_reply_to is deprecated; use Message.Builder().add_reply_to() instead", DeprecationWarning)
         if not isinstance(reply_to_user, MailUser):
             raise TypeError(f"Expected reply_to_user to be a MailUser, got {type(reply_to_user).__name__}")
-        self._reply_tos.append(reply_to_user)
+        self.__reply_tos.append(reply_to_user)
 
     def add_attachment(self, attachment: Attachment):
         """Add an attachment to the email.
@@ -215,7 +240,7 @@ class Message:
                       DeprecationWarning)
         if not isinstance(attachment, Attachment):
             raise TypeError(f"Expected attachment to be an Attachment, got {type(attachment).__name__}")
-        self._attachments.append(attachment)
+        self.__attachments.append(attachment)
 
     def add_content(self, content: Content):
         """Add a content item to the email.
@@ -231,7 +256,7 @@ class Message:
         warnings.warn("add_content is deprecated; use Message.Builder().add_content() instead", DeprecationWarning)
         if not isinstance(content, Content):
             raise TypeError(f"Expected content to be a Content, got {type(content).__name__}")
-        self._content.append(content)
+        self.__content.append(content)
 
     def to_dict(self) -> Dict:
         """Convert the Message to a dictionary representation.
@@ -240,23 +265,23 @@ class Message:
             Dict: A dictionary with email fields (from, subject, content, headers, recipients, attachments).
         """
         data = {
-            "from": self._sender.to_dict(),
-            "subject": self._subject,
+            "from": self.__sender.to_dict(),
+            "subject": self.__subject,
         }
-        if self._content:
-            data['content'] = [content.to_dict() for content in self._content]
-        if self._headers is not None:
-            data['headers'] = self._headers.to_dict()
-        if self._to:
-            data['tos'] = [recipient.to_dict() for recipient in self._to]
-        if self._cc:
-            data['cc'] = [cc_user.to_dict() for cc_user in self._cc]
-        if self._bcc:
-            data['bcc'] = [bcc_user.to_dict() for bcc_user in self._bcc]
-        if self._reply_tos:
-            data['replyTos'] = [reply_to_user.to_dict() for reply_to_user in self._reply_tos]
-        if self._attachments:
-            data['attachments'] = [attachment.to_dict() for attachment in self._attachments]
+        if self.__content:
+            data['content'] = [content.to_dict() for content in self.__content]
+        if self.__headers is not None:
+            data['headers'] = self.__headers.to_dict()
+        if self.__to:
+            data['tos'] = [recipient.to_dict() for recipient in self.__to]
+        if self.__cc:
+            data['cc'] = [cc_user.to_dict() for cc_user in self.__cc]
+        if self.__bcc:
+            data['bcc'] = [bcc_user.to_dict() for bcc_user in self.__bcc]
+        if self.__reply_tos:
+            data['replyTos'] = [reply_to_user.to_dict() for reply_to_user in self.__reply_tos]
+        if self.__attachments:
+            data['attachments'] = [attachment.to_dict() for attachment in self.__attachments]
         return data
 
     def __str__(self) -> str:
@@ -643,11 +668,5 @@ class Message:
             if not self.__content:
                 raise ValueError("At least one content item is required")
 
-            message = Message(self.__subject, self.__from, self.__header_from)
-            message._to = self.__tos
-            message._cc = self.__cc
-            message._bcc = self.__bcc
-            message._reply_tos = self.__reply_tos
-            message._attachments = self.__attachments
-            message._content = self.__content
-            return message
+            return Message._Message__create(self.__subject, self.__from, self.__header_from, self.__attachments, self.__content,
+                                   self.__tos, self.__cc, self.__bcc, self.__reply_tos)

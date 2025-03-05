@@ -65,7 +65,8 @@ class Disposition(Enum):
 class Attachment:
     """Represents an attachment with Base64-encoded content and metadata.
 
-    Use `Attachment.build()` for step-wise construction or static methods for direct creation.
+    Use `Attachment.Builder()` for step-wise construction or static methods for direct creation.
+    Attributes use double underscores to indicate they are private and not intended for direct modification.
     """
 
     def __init__(self, content: str, filename: str, mime_type: Optional[str] = None,
@@ -82,6 +83,8 @@ class Attachment:
             TypeError: If content, filename, disposition, mime_type, or content_id are of incorrect types.
             ValueError: If content is invalid Base64, filename is empty, or MIME type cannot be determined.
         """
+        warnings.warn("Direct instantiation of 'Attachment' deprecated; use Attachment.Builder", DeprecationWarning,
+                      stacklevel=2)
         # Validate input types
         if not isinstance(content, str):
             raise TypeError(f"Expected 'content' to be a string, got {type(content).__name__}")
@@ -122,6 +125,75 @@ class Attachment:
         self.__disposition = disposition
         self.__filename = filename
         self.__mime_type = mime_type
+
+    @classmethod
+    def __create(cls,
+                 content: str,
+                 filename: str,
+                 mime_type: Optional[str],
+                 disposition: Disposition,
+                 content_id: Optional[str]) -> 'Attachment':
+        """Internal method to create an Attachment instance.
+
+        Args:
+            content (str): Base64-encoded content of the attachment.
+            filename (str): Filename of the attachment.
+            mime_type (Optional[str]): MIME type of the content. If None, deduced from filename.
+            disposition (Disposition): The disposition (inline or attachment). Defaults to Attachment.
+            content_id (Optional[str]): Content-ID for inline attachments. If None or empty for inline, a UUID is generated.
+
+        Returns:
+            Attachment: A new Attachment instance.
+
+        Raises:
+            TypeError: If content, filename, disposition, mime_type, or content_id are of incorrect types.
+            ValueError: If content is invalid Base64, filename is empty, or MIME type cannot be determined.
+        """
+        # Validate input types
+        if not isinstance(content, str):
+            raise TypeError(f"Expected 'content' to be a string, got {type(content).__name__}")
+        if not isinstance(disposition, Disposition):
+            raise TypeError(f"Expected 'disposition' to be a Disposition, got {type(disposition).__name__}")
+        if not isinstance(filename, str):
+            raise TypeError(f"Expected 'filename' to be a string, got {type(filename).__name__}")
+        if mime_type is not None and not isinstance(mime_type, str):
+            raise TypeError(f"Expected 'mime_type' to be a string, got {type(mime_type).__name__}")
+
+        # Validate specific constraints
+        if not _is_valid_base64(content):
+            raise ValueError("Invalid Base64 content")
+        if not filename.strip():
+            raise ValueError("Filename must be a non-empty string")
+        if len(filename) > 1000:
+            raise ValueError("Filename must be at most 1000 characters long")
+
+        # User provided mime_type or try to deduce it from filename
+        if mime_type is None:
+            mime_type = _deduce_mime_type(filename)
+        if not mime_type.strip():
+            raise ValueError("Mime type must be a non-empty string")
+
+        # Create the instance
+        obj = cls.__new__(cls)
+
+        # Covers None, empty string, or whitespace-only strings
+        if not content_id or content_id.isspace():
+            obj.__content_id = str(uuid.uuid4())  # Generate a UUID
+        elif isinstance(content_id, str):
+            obj.__content_id = content_id  # Use provided string
+        else:
+            raise TypeError(f"Expected 'content_id' to be a string or None, got {type(content_id).__name__}")
+
+        # Content-ID only applies to inline attachments
+        if disposition == Disposition.Attachment:
+            obj.__content_id = None
+
+        obj.__content = content
+        obj.__disposition = disposition
+        obj.__filename = filename
+        obj.__mime_type = mime_type
+
+        return obj
 
     @property
     def id(self) -> str:
@@ -398,10 +470,5 @@ class Attachment:
                 Returns:
                     Attachment: The fully constructed Attachment object.
                 """
-                return Attachment(
-                    content=self.__content,
-                    filename=self.__filename,
-                    mime_type=self.__mime_type,
-                    disposition=self.__disposition,
-                    content_id=self.__content_id
-                )
+                return Attachment._Attachment__create(self.__content, self.__filename, self.__mime_type,
+                                                      self.__disposition, self.__content_id)
