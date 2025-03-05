@@ -198,6 +198,7 @@ class Attachment:
         Returns:
             Attachment: A new Attachment instance.
         """
+        warnings.warn("from_base64 is deprecated; use Attachment.Builder().from_base64() instead", DeprecationWarning)
         return Attachment(base64string, filename, mime_type, disposition, content_id)
 
     @staticmethod
@@ -219,6 +220,7 @@ class Attachment:
             TypeError: If file_path is not a string.
             FileNotFoundError: If the file does not exist.
         """
+        warnings.warn("from_file is deprecated; use Attachment.Builder().from_file() instead", DeprecationWarning)
         if not isinstance(file_path, str):
             raise TypeError(f"Expected 'file_path' to be a string, got {type(file_path).__name__}")
         if not os.path.isfile(file_path):
@@ -247,6 +249,7 @@ class Attachment:
         Raises:
             TypeError: If data is not bytes.
         """
+        warnings.warn("from_bytes is deprecated; use Attachment.Builder().from_bytes() instead", DeprecationWarning)
         if not isinstance(data, bytes):
             raise TypeError(f"Expected 'data' to be bytes, got {type(data).__name__}")
         content = base64.b64encode(data).decode("utf-8")
