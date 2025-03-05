@@ -22,7 +22,7 @@ if __name__ == "__main__":
     message = (
         Message.Builder()
         .subject("This is a test email")  # Sets the email subject (required)
-        .from_address("sender@example.com", "Joe Sender")  # Sets the sender (required)
+        .sender("sender@example.com", "Joe Sender")  # Sets the sender (required)
         .add_content("This is a test message", ContentType.Text)  # Adds plain text content (required minimum)
         .add_content(  # Required: Adds HTML content referencing both static and dynamic CIDs
             f"<b>Static CID</b><br><img src=\"cid:logo\"><br><b>Dynamic CID</b><br><img src=\"cid:{logo_b.cid}\">",

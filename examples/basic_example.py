@@ -14,7 +14,7 @@ if __name__ == "__main__":
     message = (
         Message.Builder()
         .subject("This is a test email")
-        .from_address("sender@example.com", "Joe Sender")
+        .sender("sender@example.com", "Joe Sender")
         .add_content("This is a test message", ContentType.Text)
         .add_to("recipient1@example.com", "Recipient 1")
         .build()

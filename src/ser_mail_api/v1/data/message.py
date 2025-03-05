@@ -67,6 +67,7 @@ class Message:
         Raises:
             TypeError: If sender is not a MailUser.
         """
+        warnings.warn("sender is deprecated; use Message.Builder().sender() instead", DeprecationWarning)
         if not isinstance(sender, MailUser):
             raise TypeError(f"Expected sender to be a MailUser, got {type(sender).__name__}")
         self._sender = sender
@@ -78,6 +79,7 @@ class Message:
         Returns:
             Optional[MailUser]: The header sender, or None if not set.
         """
+        warnings.warn("header_sender is deprecated; use header_from instead", DeprecationWarning)
         return self.header_from
 
     @header_sender.setter
@@ -87,6 +89,7 @@ class Message:
         Args:
             sender (MailUser): The new header sender.
         """
+        warnings.warn("header_sender is deprecated; use header_from instead", DeprecationWarning)
         self.header_from = sender
 
     @property
@@ -99,7 +102,7 @@ class Message:
         return self._headers.header_from if self._headers else None
 
     @header_from.setter
-    def header_from(self, header_from: Optional["MailUser"]):
+    def header_from(self, header_from: Optional[MailUser]):
         """Set the sender in the headers.
 
         Args:
@@ -268,19 +271,21 @@ class Message:
         """Builder class for constructing Message instances fluently.
 
         Enforces minimum requirements (from, tos, subject, content) at build time.
+        Methods suffixed with '_mailuser' accept pre-constructed MailUser objects,
+        while their non-suffixed counterparts construct MailUser objects from email and name strings.
         """
 
         def __init__(self):
             """Initialize the Builder with empty lists and default values."""
-            self._attachments: List[Attachment] = []
-            self._content: List[Content] = []
-            self._tos: List[MailUser] = []
-            self._cc: List[MailUser] = []
-            self._bcc: List[MailUser] = []
-            self._reply_tos: List[MailUser] = []
-            self._subject: Optional[str] = None
-            self._from: Optional[MailUser] = None
-            self._header_from: Optional[MailUser] = None
+            self.__attachments: List[Attachment] = []
+            self.__content: List[Content] = []
+            self.__tos: List[MailUser] = []
+            self.__cc: List[MailUser] = []
+            self.__bcc: List[MailUser] = []
+            self.__reply_tos: List[MailUser] = []
+            self.__subject: Optional[str] = None
+            self.__from: Optional[MailUser] = None
+            self.__header_from: Optional[MailUser] = None
 
         def subject(self, subject: str) -> Message.Builder:
             """Set the subject of the email.
@@ -290,24 +295,40 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If subject is not a string (including if it is None).
             """
-            self._subject = subject
+            if not isinstance(subject, str):
+                raise TypeError(f"Expected subject to be a string, got {type(subject).__name__}")
+            self.__subject = subject
             return self
 
-        def from_address_mu(self, from_: MailUser) -> Message.Builder:
-            """Set the sender of the email.
+        def sender_mailuser(self, sender: MailUser) -> Message.Builder:
+            """Set the sender of the email using a pre-constructed MailUser object.
+
+            Use this method when you already have a MailUser instance. For constructing a sender
+            from an email and name, use sender() instead.
 
             Args:
-                from_ (MailUser): The sender to set.
+                sender (MailUser): The sender as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If from_ is not a MailUser instance (including if it is None).
             """
-            self._from = from_
+            if not isinstance(sender, MailUser):
+                raise TypeError(f"Expected sender to be a MailUser, got {type(sender).__name__}")
+            self.__from = sender
             return self
 
-        def from_address(self, email: str, name: Optional[str] = None) -> Message.Builder:
+        def sender(self, email: str, name: Optional[str] = None) -> Message.Builder:
             """Set the sender using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use sender_mailuser() instead.
 
             Args:
                 email (str): The sender's email address.
@@ -315,24 +336,42 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._from = MailUser(email, name)
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__from = MailUser(email, name)
             return self
 
-        def header_from_mu(self, header_from: MailUser) -> Message.Builder:
-            """Set the header 'From' value.
+        def header_from_mailuser(self, header_from: MailUser) -> Message.Builder:
+            """Set the header 'From' value using a pre-constructed MailUser object.
+
+            Use this method when you have a MailUser instance for the header sender.
+            For constructing from an email and name, use header_from() instead.
 
             Args:
-                header_from (MailUser): The sender to appear in the headers.
+                header_from (MailUser): The sender to appear in the headers as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If header_from is not a MailUser instance (including if it is None).
             """
-            self._header_from = header_from
+            if not isinstance(header_from, MailUser):
+                raise TypeError(f"Expected header_from to be a MailUser, got {type(header_from).__name__}")
+            self.__header_from = header_from
             return self
 
         def header_from(self, email: str, name: Optional[str] = None) -> Message.Builder:
             """Set the header 'From' value using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use header_from_mailuser() instead.
 
             Args:
                 email (str): The header sender's email address.
@@ -340,8 +379,15 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._header_from = MailUser(email, name)
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__header_from = MailUser(email, name)
             return self
 
         def add_attachment(self, attachment: Attachment) -> Message.Builder:
@@ -355,10 +401,13 @@ class Message:
 
             Raises:
                 ValueError: If attachment is None.
+                TypeError: If attachment is not an Attachment instance.
             """
             if attachment is None:
                 raise ValueError("Attachment must not be None")
-            self._attachments.append(attachment)
+            if not isinstance(attachment, Attachment):
+                raise TypeError(f"Expected attachment to be an Attachment, got {type(attachment).__name__}")
+            self.__attachments.append(attachment)
             return self
 
         def add_content_ct(self, content: Content) -> Message.Builder:
@@ -372,10 +421,13 @@ class Message:
 
             Raises:
                 ValueError: If content is None.
+                TypeError: If content is not a Content instance.
             """
             if content is None:
                 raise ValueError("Content must not be None")
-            self._content.append(content)
+            if not isinstance(content, Content):
+                raise TypeError(f"Expected content to be a Content, got {type(content).__name__}")
+            self.__content.append(content)
             return self
 
         def add_content(self, body: str, type_: ContentType) -> Message.Builder:
@@ -387,29 +439,42 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If body is not a string (including if it is None) or type_ is not a ContentType (including if it is None).
             """
-            self._content.append(Content(body, type_))
+            if not isinstance(body, str):
+                raise TypeError(f"Expected body to be a string, got {type(body).__name__}")
+            if not isinstance(type_, ContentType):
+                raise TypeError(f"Expected type_ to be a ContentType, got {type(type_).__name__}")
+            self.__content.append(Content(body, type_))
             return self
 
-        def add_to_mu(self, to: MailUser) -> Message.Builder:
-            """Add a primary recipient (To field) to the email.
+        def add_to_mailuser(self, to: MailUser) -> Message.Builder:
+            """Add a primary recipient (To field) to the email using a pre-constructed MailUser object.
+
+            Use this method when you have an existing MailUser instance. For constructing a recipient
+            from an email and name, use add_to() instead.
 
             Args:
-                to (MailUser): The recipient to add.
+                to (MailUser): The recipient as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
 
             Raises:
-                ValueError: If to is None.
+                TypeError: If to is not a MailUser instance (including if it is None).
             """
-            if to is None:
-                raise ValueError("Recipient must not be None")
-            self._tos.append(to)
+            if not isinstance(to, MailUser):
+                raise TypeError(f"Expected to to be a MailUser, got {type(to).__name__}")
+            self.__tos.append(to)
             return self
 
         def add_to(self, email: str, name: Optional[str] = None) -> Message.Builder:
-            """Add a primary recipient using an email address and optional name.
+            """Add a primary recipient (To field) using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use add_to_mailuser() instead.
 
             Args:
                 email (str): The recipient's email address.
@@ -417,29 +482,42 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._tos.append(MailUser(email, name))
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__tos.append(MailUser(email, name))
             return self
 
-        def add_cc_mu(self, cc: MailUser) -> Message.Builder:
-            """Add a CC recipient to the email.
+        def add_cc_mailuser(self, cc: MailUser) -> Message.Builder:
+            """Add a CC recipient to the email using a pre-constructed MailUser object.
+
+            Use this method when you have an existing MailUser instance. For constructing a CC
+            recipient from an email and name, use add_cc() instead.
 
             Args:
-                cc (MailUser): The CC recipient to add.
+                cc (MailUser): The CC recipient as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
 
             Raises:
-                ValueError: If cc is None.
+                TypeError: If cc is not a MailUser instance (including if it is None).
             """
-            if cc is None:
-                raise ValueError("CC recipient must not be None")
-            self._cc.append(cc)
+            if not isinstance(cc, MailUser):
+                raise TypeError(f"Expected cc to be a MailUser, got {type(cc).__name__}")
+            self.__cc.append(cc)
             return self
 
         def add_cc(self, email: str, name: Optional[str] = None) -> Message.Builder:
             """Add a CC recipient using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use add_cc_mailuser() instead.
 
             Args:
                 email (str): The CC recipient's email address.
@@ -447,29 +525,42 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._cc.append(MailUser(email, name))
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__cc.append(MailUser(email, name))
             return self
 
-        def add_bcc_mu(self, bcc: MailUser) -> Message.Builder:
-            """Add a BCC recipient to the email.
+        def add_bcc_mailuser(self, bcc: MailUser) -> Message.Builder:
+            """Add a BCC recipient to the email using a pre-constructed MailUser object.
+
+            Use this method when you have an existing MailUser instance. For constructing a BCC
+            recipient from an email and name, use add_bcc() instead.
 
             Args:
-                bcc (MailUser): The BCC recipient to add.
+                bcc (MailUser): The BCC recipient as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
 
             Raises:
-                ValueError: If bcc is None.
+                TypeError: If bcc is not a MailUser instance (including if it is None).
             """
-            if bcc is None:
-                raise ValueError("BCC recipient must not be None")
-            self._bcc.append(bcc)
+            if not isinstance(bcc, MailUser):
+                raise TypeError(f"Expected bcc to be a MailUser, got {type(bcc).__name__}")
+            self.__bcc.append(bcc)
             return self
 
         def add_bcc(self, email: str, name: Optional[str] = None) -> Message.Builder:
             """Add a BCC recipient using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use add_bcc_mailuser() instead.
 
             Args:
                 email (str): The BCC recipient's email address.
@@ -477,29 +568,42 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._bcc.append(MailUser(email, name))
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__bcc.append(MailUser(email, name))
             return self
 
-        def add_reply_to_mu(self, reply_to: MailUser) -> Message.Builder:
-            """Add a Reply-To recipient to the email.
+        def add_reply_to_mailuser(self, reply_to: MailUser) -> Message.Builder:
+            """Add a Reply-To recipient to the email using a pre-constructed MailUser object.
+
+            Use this method when you have an existing MailUser instance. For constructing a Reply-To
+            recipient from an email and name, use add_reply_to() instead.
 
             Args:
-                reply_to (MailUser): The Reply-To recipient to add.
+                reply_to (MailUser): The Reply-To recipient as a MailUser object.
 
             Returns:
                 Message.Builder: Self for chaining.
 
             Raises:
-                ValueError: If reply_to is None.
+                TypeError: If reply_to is not a MailUser instance (including if it is None).
             """
-            if reply_to is None:
-                raise ValueError("Reply-To recipient must not be None")
-            self._reply_tos.append(reply_to)
+            if not isinstance(reply_to, MailUser):
+                raise TypeError(f"Expected reply_to to be a MailUser, got {type(reply_to).__name__}")
+            self.__reply_tos.append(reply_to)
             return self
 
         def add_reply_to(self, email: str, name: Optional[str] = None) -> Message.Builder:
             """Add a Reply-To recipient using an email address and optional name.
+
+            This method constructs a MailUser object internally. If you have an existing
+            MailUser object, use add_reply_to_mailuser() instead.
 
             Args:
                 email (str): The Reply-To recipient's email address.
@@ -507,8 +611,15 @@ class Message:
 
             Returns:
                 Message.Builder: Self for chaining.
+
+            Raises:
+                TypeError: If email is not a string (including if it is None) or name is provided and not a string.
             """
-            self._reply_tos.append(MailUser(email, name))
+            if not isinstance(email, str):
+                raise TypeError(f"Expected email to be a string, got {type(email).__name__}")
+            if name is not None and not isinstance(name, str):
+                raise TypeError(f"Expected name to be a string or None, got {type(name).__name__}")
+            self.__reply_tos.append(MailUser(email, name))
             return self
 
         def build(self) -> Message:
@@ -523,20 +634,20 @@ class Message:
             Raises:
                 ValueError: If from, tos, subject, or content is not set appropriately.
             """
-            if self._from is None:
+            if self.__from is None:
                 raise ValueError("Sender (from) is required")
-            if not self._tos:
+            if not self.__tos:
                 raise ValueError("At least one recipient (to) is required")
-            if self._subject is None:
+            if self.__subject is None:
                 raise ValueError("Subject is required")
-            if not self._content:
+            if not self.__content:
                 raise ValueError("At least one content item is required")
 
-            message = Message(self._subject, self._from, self._header_from)
-            message._to = self._tos
-            message._cc = self._cc
-            message._bcc = self._bcc
-            message._reply_tos = self._reply_tos
-            message._attachments = self._attachments
-            message._content = self._content
+            message = Message(self.__subject, self.__from, self.__header_from)
+            message._to = self.__tos
+            message._cc = self.__cc
+            message._bcc = self.__bcc
+            message._reply_tos = self.__reply_tos
+            message._attachments = self.__attachments
+            message._content = self.__content
             return message
