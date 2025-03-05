@@ -20,10 +20,7 @@ if __name__ == "__main__":
     message.add_content(Content("<b>This is a test message</b><br><img src=\"cid:logo_a\">", ContentType.Html))
 
     # Create an inline attachment from disk and set the cid.
-    message.add_attachment(Attachment.Builder()
-                           .from_file("C:/temp/logo_a.png")
-                           .disposition_inline("logo_a")
-                           .build())
+    message.add_attachment(Attachment.from_file("C:/temp/logo_a.png", Disposition.Inline, "logo_a"))
 
     # Add recipients
     message.add_to(MailUser("recipient1@example.com", "Recipient 1"))
@@ -38,18 +35,11 @@ if __name__ == "__main__":
     message.add_bcc(MailUser("bcc2@example.com", "BCC Recipient 2"))
 
     # Add attachments
-    message.add_attachment(Attachment.Builder()
-                           .from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt")
-                           .build())
+    message.add_attachment(Attachment.from_base64("VGhpcyBpcyBhIHRlc3Qh", "test.txt"))
 
-    message.add_attachment(Attachment.Builder()
-                           .from_file("C:/temp/file.csv")
-                           .build())
+    message.add_attachment(Attachment.from_file("C:/temp/file.csv"))
 
-    message.add_attachment(Attachment.Builder()
-                           .from_bytes(b"Sample bytes", "bytes.txt")
-                           .mime_type("text/plain")
-                           .build())
+    message.add_attachment(Attachment.from_bytes(b"Sample bytes", "bytes.txt"))
 
     # Set or more Reply-To addresses
     message.add_reply_to(MailUser("noreply@proofpoint.com", "No Reply"))
