@@ -6,6 +6,7 @@ License: MIT
 from requests.adapters import HTTPAdapter
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 
+from .common.region import Region
 from .endpoints.send import Send
 from .resources import ErrorHandler
 from .resources import Resource
@@ -32,8 +33,8 @@ class Client(Resource):
     __error_handler: ErrorHandler
     __send: Send
 
-    def __init__(self, client_id: str, client_secret: str):
-        super().__init__(None, "https://mail.ser.proofpoint.com/v1")
+    def __init__(self, client_id: str, client_secret: str, region: Region = Region.US):
+        super().__init__(None, f"https://{region.value}/v1")
 
         # Custom error handler, allow raise on error.
         self.__error_handler = ErrorHandler()
