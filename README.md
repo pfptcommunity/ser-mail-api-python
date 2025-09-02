@@ -78,7 +78,8 @@ import json
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
 
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
@@ -159,7 +160,8 @@ message body.
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
 
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
@@ -193,7 +195,8 @@ The example below demonstrates how to create inline content with a custom Conten
 from ser_mail_api.v1 import *
 
 if __name__ == "__main__":
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
 
     # Create a new Message object
     message = Message("This is a test email", MailUser("sender@example.com", "Joe Sender"))
@@ -224,7 +227,8 @@ Socks5 Proxy Example:
 from ser_mail_api.v1 import *
 
 if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
     credentials = "{}:{}@".format("proxyuser", "proxypass")
     client._session.proxies = {'https': "{}://{}{}:{}".format('socks5', credentials, '<your_proxy>', '8128')}
 ```
@@ -235,7 +239,8 @@ HTTP Proxy Example (Squid):
 from ser_mail_api.v1 import *
 
 if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
     credentials = "{}:{}@".format("proxyuser", "proxypass")
     client._session.proxies = {'https': "{}://{}{}:{}".format('http', credentials, '<your_proxy>', '3128')}
 
@@ -247,7 +252,8 @@ if __name__ == '__main__':
 from ser_mail_api.v1 import *
 
 if __name__ == '__main__':
-    client = Client("<client_id>", "<client_secret>")
+    # Default region when not specified is Region.US
+    client = Client("<client_id>", "<client_secret>", Region.US)
     # Timeout in seconds, connect timeout
     client.timeout = 600
     # Timeout advanced, connect / read timeout
