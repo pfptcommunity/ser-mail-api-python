@@ -6,7 +6,7 @@ License: MIT
 from requests.adapters import HTTPAdapter
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 
-from .common.region import Region
+from .common import Region
 from .endpoints.send import Send
 from .resources import ErrorHandler
 from .resources import Resource
